@@ -26,7 +26,7 @@ def get_ppg_peak_amplitude_ratio(arr : np.ndarray, feets : np.ndarray, systolic_
 
     Examples
     --------
-    To find amplitude ratios of systolic and diastolic peaks in given signal:
+    To find amplitude ratios of systolic and diastolic peaks in given signal.
 
     .. plot::
        :include-source:

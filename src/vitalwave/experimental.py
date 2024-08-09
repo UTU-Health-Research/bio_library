@@ -29,7 +29,7 @@ def get_ecg_signal_peaks(arr : np.ndarray, r_peaks : np.ndarray, fs : int):
 
     Examples
     --------
-    To find R peaks in given ECG signal:
+    To find R peaks in given ECG signal.
 
     .. plot::
        :include-source:
@@ -232,7 +232,7 @@ def _identify_peaks_in_waveform(waveforms_ecg : list, get_bad_indexes : bool = F
                 cumulative_ecg_peaks.append(peaks)
 
             else:
-                #print("missing points: ", index)
+                # print("missing points: ", index)
                 waveforms_with_error.append(index)
 
                 idx_peak_ids += waveform.shape[0]

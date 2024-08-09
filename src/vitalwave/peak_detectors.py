@@ -9,7 +9,7 @@ import copy
 def ampd(arr : np.ndarray, fs : int = None):
 
     """
-    Detects peaks with automatic multiscale-based algorithm Automated Multi-scale Peak Detection (AMPD).
+    Detects peaks with automatic multiscale-based peak detection algorithm (AMPD).
     Based on article in https://doi.org/10.3390/a5040588.
 
     Parameters
@@ -26,7 +26,7 @@ def ampd(arr : np.ndarray, fs : int = None):
 
     Examples
     --------
-    To find peaks or valleys in given signal:
+    To find peaks or valleys in given signal.
 
     .. plot::
        :include-source:
@@ -135,7 +135,7 @@ def msptd(arr : np.ndarray, fs : int = None):
 
        start, stop = limits
 
-       # calculate PPG peaks and valleys with Modified Smoothed Peak Detection (MSDP).
+       # calculate PPG peaks and valleys with modified smoothed peak detection (MSDP).
        ppg_msptd_peaks, ppg_msptd_feet = msptd(ppg[start:stop], fs=fs)
 
        fig, ax = plt.subplots()
@@ -217,7 +217,7 @@ def ecg_modified_pan_tompkins(arr : np.ndarray, fs : int):
 
     Examples
     --------
-    To find R peaks of ECG in given signal:
+    To find R peaks of ECG in given signal.
 
     .. plot::
        :include-source:
@@ -306,7 +306,7 @@ def get_peaks_from_ppg_using_segments(arr : np.ndarray, fs : float, set_overlap 
 
     Examples
     --------
-    To find peaks or valleys in given signal:
+    To find peaks or valleys in given signal.
 
     .. plot::
        :include-source:

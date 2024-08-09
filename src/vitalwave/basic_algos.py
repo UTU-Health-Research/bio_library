@@ -371,10 +371,10 @@ def extract_waveforms(arr : np.ndarray, fid_points : np.ndarray, mode : str, win
 
        make_odd = lambda x: x + (x % 2 == 0)
 
-       # calculate ECG r-peaks
+       # Calculate ECG r-peaks.
        ecg_r_peaks = ecg_modified_pan_tompkins(ecg, fs=fs)
 
-       # calculate ppg peaks and valleys - msptd (Modified Smoothed Peak Detection)
+       # Calculate ppg peaks and valleys wiht modified smoothed peak detection (MSPTD)
        ppg_msptd_peaks, ppg_msptd_feet = msptd(ppg, fs=fs)
 
        ppg_wfs, ppg_wfs_mean = extract_waveforms(ppg, ppg_msptd_feet, 'fid_to_fid')
@@ -650,7 +650,7 @@ def calculate_time_delay(arr_ecg : np.ndarray, arr_ppg : np.ndarray, peaks_ecg :
        # Calculate ECG R peaks.
        ecg_r_peaks = ecg_modified_pan_tompkins(ecg, fs=fs)
 
-       # Calculate PPG peaks and valleys with Modified Smoothed Peak Detection (MSPD).
+       # Calculate PPG peaks and valleys with modified smoothed peak detection (MSPD).
        ppg_msptd_peaks, ppg_msptd_feet = msptd(ppg, fs=fs)
 
        locs_ppg = calculate_time_delay(arr_ecg=ecg, arr_ppg=ppg,
