@@ -738,7 +738,6 @@ def segmenting (arr : np.ndarray, window_size : int, overlap : int):
     -------
     frames : list
         Segmented frames.
-        test.
 
     Examples
     --------
