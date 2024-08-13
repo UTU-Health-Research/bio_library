@@ -367,13 +367,18 @@ def Euclidean_Distance(arr, locs, fs):
     """
     Compute the average Euclidean distance of waveforms from their mean waveform.
     
-    Parameters:
-    - arr: Input signal array.
-    - locs: Indices of peaks around which waveforms are extracted.
-    - fs: Sampling frequency of the signal.
+    Parameters
+    ----------
+    arr
+        Input signal array.
+    locs
+        Indices of peaks around which waveforms are extracted.
+    fs
+        Sampling frequency of the signal.
     
-    Returns:
-    - Average Euclidean distance between each waveform and the reference waveform.
+    Returns
+    -------
+        Average Euclidean distance between each waveform and the reference waveform.
     """
     waveforms = extract_waveforms(arr, locs, fs) #TAKE FROM VITAL WAVE
     if not waveforms:
@@ -387,13 +392,19 @@ def Linear_Resampling(arr, locs, fs):
     """
     Compute a Signal Quality Index (SQI) based on linear resampling and correlation of waveforms.
     
-    Parameters:
-    - arr (numpy array): The signal array from which waveforms are extracted.
-    - locs (list of ints): Indices of peaks in the signal to extract waveforms.
-    - fs (int): Sampling frequency of the signal.
+    Parameters
+    ----------
+    arr : np.ndarray
+        The signal array from which waveforms are extracted.
+    locs : list of ints
+        Indices of peaks in the signal to extract waveforms.
+    fs : int
+        Sampling frequency of the signal.
     
-    Returns:
-    - float: The average correlation coefficient between the resampled waveforms and the template.
+    Returns
+    -------
+    float
+        The average correlation coefficient between the resampled waveforms and the template.
     """
     waveforms = extract_waveforms(arr, locs, fs)
     aligned_waveforms = align_waveforms(waveforms)
@@ -425,7 +436,6 @@ def quality_index_for_waveform(arr:np.ndarray, r_peaks:np.ndarray) -> list:
 
     Examples
     --------
-
     To find the r-peaks of ECG in a given signal:
 
     .. plot::
@@ -451,7 +461,6 @@ def quality_index_for_waveform(arr:np.ndarray, r_peaks:np.ndarray) -> list:
        fig, ax = plt.subplots()
        ax.boxplot(l_correlation)
        plt.show()
-
     """
     l_correlations = []
 
@@ -469,13 +478,19 @@ def Waveform_Correlation_Index(arr, locs, fs): #SAME AS ALREADY (the one above)
     """
     Calculate the correlation index for waveforms extracted around specified locations in an array.
 
-    Parameters:
-    - arr: The input array from which waveforms are extracted.
-    - locs: Indices of peaks in the signal to extract waveforms.
-    - fs: Sampling frequency of the array.
+    Parameters
+    ----------
+    arr
+        The input array from which waveforms are extracted.
+    locs
+        Indices of peaks in the signal to extract waveforms.
+    fs
+        Sampling frequency of the array.
 
-    Returns:
-    - float: Average correlation coefficient between each waveform and the median waveform.
+    Returns
+    -------
+    float
+        Average correlation coefficient between each waveform and the median waveform.
     """
     # Step 1: Extract waveforms and align them
     waveforms = extract_waveforms(arr, locs, fs)
@@ -494,6 +509,3 @@ def Waveform_Correlation_Index(arr, locs, fs): #SAME AS ALREADY (the one above)
     # Step 4: Average correlation coefficients
     quality_indice = np.mean(corr_coefs) if corr_coefs else 0 
     return quality_indice
-
-
-
