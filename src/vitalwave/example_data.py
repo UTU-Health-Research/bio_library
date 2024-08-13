@@ -1,47 +1,38 @@
 import os
-
 import numpy as np
 
-def load_biosignal(l_columns : list = None, type : str = 'ECG', clean : bool = True):
-
+def load_biosignal(l_columns: list = None, type: str = "ECG", clean: bool = True) -> tuple:
     """
-    Loads ECG or PPG data from files.
+    Load ECG (Electrocardiogram) or PPG (Photoplethysmogram) data from numpy files.
 
     Parameters
     ----------
     l_columns : list, optional
-        List of column names to include in returned data.
-        If not provided, default column names will be used for respective ECG or PPG data.
-        Default is None.
+        A list of column names to include in the returned data. If not provided,
+        default column names will be used for the respective data (ECG or PPG).
     type : str, optional
-        Alternatives are 'ECG' and 'PPG'.
-        Default is 'ECG'.
+        Acceptable values: ECG or PPG.
     clean : bool, optional
-        If True, load clean data.
-        If False, load data with motion artifacts.
+        If True, load clean data; if False, load data with motion artifacts.
         Default is True.
 
     Returns
     -------
     tuple
-        Time.
-        Data-columns.
-
+        A tuple containing two elements:
+        - numpy.ndarray: time
+        - numpy.ndarray: data-column
+    
     Examples
     --------
-    To x with already defined column names.
-    
     .. code-block:: python
         from vitalwave import example_data
         example_data.load_biosignal(l_columns=columns, type='ECG', clean=True)
-
-    \nTo x with column names from data.
     
     .. code-block:: python
         from vitalwave import example_data
         example_data.load_biosignal(l_columns=None, type='ECG', clean=True)
     """
-
     if type in "ECG":
         filename = 'clean_ecg.npy' if clean else 'motion_ecg.npy'
         if l_columns is None:

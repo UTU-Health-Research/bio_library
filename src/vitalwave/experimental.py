@@ -6,30 +6,34 @@ from vitalwave.peak_detectors import ampd
 from scipy.signal import find_peaks, savgol_filter
 from scipy.signal import argrelextrema, windows
 
-
-def get_ecg_signal_peaks(arr : np.ndarray, r_peaks : np.ndarray, fs : int):
-
+def get_ecg_signal_peaks(arr: np.ndarray, r_peaks: np.ndarray, fs: int) -> tuple:
     """
-    Extracts and categorizes P, Q, R, S, and T peaks from ECG signal.
+    Extracts and categorizes ECG signal peaks, including R, P, Q, S, and T peaks.
 
     Parameters
     ----------
     arr : np.ndarray
-        ECG signal.
+        Array representing the ECG signal.
     r_peaks : np.ndarray
-       R-peak locations in samples.
+        Array containing R-peak locations in samples.
     fs : int
-        Sampling rate.
+        Sampling frequency of the ECG signal.
 
     Returns
     -------
-    tuple
-        Binary array indicating presence of identified peaks in ECG signal.
-        Array categorizing identified P, Q, R, S, and T peaks in ECG signal.
+    nd_ecg_with_peaks
+        Binary array indicating the presence of identified peaks in the ECG signal.
+    nd_ecg_with_peak_types
+        Array categorizing the identified peaks in the ECG signal:
+        - 1: P-peak
+        - 2: Q-peak
+        - 3: R-peak
+        - 4: S-peak
+        - 5: T-peak
 
     Examples
     --------
-    To find R peaks in given ECG signal.
+    To find the r-peaks of ECG in a given signal:
 
     .. plot::
        :include-source:
@@ -68,18 +72,17 @@ def get_ecg_signal_peaks(arr : np.ndarray, r_peaks : np.ndarray, fs : int):
        plt.scatter(ecg_peaks, heights_peaks, marker='o', color='green')
        plt.show()
     """
-
-    # Extract waveforms and initial peaks.
+    # Extract waveforms and initial peaks
     ecg_hilbert = basic_algos.homomorphic_hilbert_envelope(arr, fs)
 
     waveforms_ecg, mean_waveform_ecg = basic_algos.extract_waveforms(ecg_hilbert, (np.rint(r_peaks)).astype(int),
-                                                                     mode="nn_interval")
+                                                         mode="nn_interval")
 
-    # Identify peaks in waveforms.
+    # Identify peaks in waveforms
     cumulative_ecg_peaks, initial_peaks_ecg_types, waveforms_with_error  = _identify_peaks_in_waveform(waveforms_ecg,
                                                                                                        get_bad_indexes=True)
 
-    # Process identified peaks and types.
+    # Process identified peaks and types
     ecg_signal = np.ravel(waveforms_ecg)
     ecg_signal = ecg_signal[~np.isnan(ecg_signal)]
 
@@ -94,7 +97,7 @@ def get_ecg_signal_peaks(arr : np.ndarray, r_peaks : np.ndarray, fs : int):
     for index, peak in enumerate(ecg_peaks_all):
         nd_ecg_with_peak_types[peak] = ecg_peaks_all_types[index]
 
-    # Count R-peaks and adjust peak arrays.
+    # Count R-peaks and adjust peak arrays
     count = np.where(nd_ecg_with_peak_types == 3)[0].shape[0]
 
     r_peaks = np.delete(r_peaks, waveforms_with_error)
@@ -103,46 +106,48 @@ def get_ecg_signal_peaks(arr : np.ndarray, r_peaks : np.ndarray, fs : int):
     t_peak = r_peaks + (np.where(nd_ecg_with_peak_types == 5)[0] - np.where(nd_ecg_with_peak_types == 3)[0])
     p_peak = r_peaks + (np.where(nd_ecg_with_peak_types == 1)[0] - np.where(nd_ecg_with_peak_types == 3)[0])
 
-    # Find P, Q, S, and T peaks.
+    # Find P, Q, S, and T peaks
     nd_ecg_with_peaks, nd_ecg_with_peak_types = _find_p_q_s_t(arr = arr, r_peaks=r_peaks,
                                                               t_peaks=t_peak, p_peaks=p_peak, window=3)
 
     return nd_ecg_with_peaks, nd_ecg_with_peak_types
 
-def _find_p_q_s_t(arr : np.ndarray, r_peaks : np.ndarray, t_peaks : np.ndarray, p_peaks : np.ndarray, window : int = 3):
-    
+
+def _find_p_q_s_t(arr: np.ndarray, r_peaks: np.ndarray, t_peaks: np.ndarray, p_peaks: np.ndarray, window: int = 3) -> tuple:
     """
-    Identifies P, Q, S, and T peaks in ECG signal and categorizes their types.
+    Identifies P, Q, S, and T peaks in an ECG signal and categorizes their types.
 
     Parameters
     ----------
     arr : np.ndarray
-        ECG signal.
+        array representing the ECG signal.
     r_peaks : np.ndarray
-        R peak locations in ECG signal.
+        array containing the R-peak locations in the ECG signal.
     t_peaks : np.ndarray
-        T peak locations in ECG signal.
+        array containing the T-peak locations in the ECG signal.
     p_peaks : np.ndarray
-       P peak locations in ECG signal.
+        array containing the P-peak locations in the ECG signal.
     window : int
-        Half of window size used for peak identification around P and T peaks.
-        Default is 3.
+        Half of the window size used for peak identification around P and T peaks, by default 3.
 
     Returns
     -------
-    tuple
-        Binary array indicating presence of identified peaks in ECG signal.
-        Array categorizing identified P, Q, R, S, and T peaks in ECG signal.
-
-    Examples
-    --------
-    To find peaks in ECG signal.
+    nd_ecg_with_peaks
+        Binary array indicating the presence of identified peaks in the ECG signal.
+    nd_ecg_with_peak_types
+        Array categorizing the identified peaks in the ECG signal:
+        - 1: P-peak
+        - 2: Q-peak
+        - 3: R-peak
+        - 4: S-peak
+        - 5: T-peak
     
+    Examples
+    --------    
     .. code-block:: python
         from vitalwave import experimental
         experimental._find_p_q_s_t(arr=ecg, r_peaks=r, t_peaks=t, p_peaks=p, window=3)
     """
-
     nd_ecg_with_peaks = np.zeros(arr.shape[0])
     nd_ecg_with_peak_types = np.zeros(arr.shape[0])
 
@@ -167,35 +172,32 @@ def _find_p_q_s_t(arr : np.ndarray, r_peaks : np.ndarray, t_peaks : np.ndarray, 
 
     return nd_ecg_with_peaks, nd_ecg_with_peak_types
 
-def _identify_peaks_in_waveform(waveforms_ecg : list, get_bad_indexes : bool = False):
-
+def _identify_peaks_in_waveform(waveforms_ecg, get_bad_indexes: bool = False):
     """
     Identifies peaks in ECG waveforms and categorizes their types.
 
     Parameters
     ----------
-    waveforms_ecg : list
-        ECG waveforms for peak identification.
+    waveforms_ecg
+        List of ECG waveforms for peak identification.
     get_bad_indexes : bool
-        Flag to indicate whether to return indexes of waveforms with errors.
-        Default is False.
+        Flag to indicate whether to return indexes of waveforms with errors, by default False.
 
     Returns
     -------
-    tuple
-        List of cumulative peak locations for all waveforms categorized by types.
+    cumulative_ecg_peaks
+        List of cumulative peak locations for all waveforms, categorized by types.
+    initial_peaks_ecg_types
         List of peak type categorizations corresponding to initial_peaks_ecg.
-        List of indexes of waveforms with missing points or errors if get_bad_indexes is True.
-
-    Examples
-    --------
-    To identify peaks in ECG signal.
+    waveforms_with_error
+        List of indexes of waveforms with missing points or errors (if get_bad_indexes is True).
     
+    Examples
+    --------    
     .. code-block:: python
         from vitalwave import experimental
         experimental._identify_peaks_in_waveform(waveforms_ecg=waves, get_bad_indexes=False)
     """
-
     initial_peaks_ecg_types = []
     cumulative_ecg_peaks = []
     waveforms_with_error = []
@@ -232,47 +234,47 @@ def _identify_peaks_in_waveform(waveforms_ecg : list, get_bad_indexes : bool = F
                 cumulative_ecg_peaks.append(peaks)
 
             else:
-                # print("missing points: ", index)
+                #print("missing points: ", index)
                 waveforms_with_error.append(index)
 
                 idx_peak_ids += waveform.shape[0]
         except:
             continue
 
-    if get_bad_indexes:
-        return cumulative_ecg_peaks, initial_peaks_ecg_types, waveforms_with_error
-    else:
-        return cumulative_ecg_peaks, initial_peaks_ecg_types
+    if get_bad_indexes: return cumulative_ecg_peaks, initial_peaks_ecg_types, waveforms_with_error
+    else: return cumulative_ecg_peaks, initial_peaks_ecg_types
 
-def derive_ppg_signal_peaks(arr : np.ndarray, ppg_peaks : np.ndarray, ppg_feets : np.ndarray, window_length : int = 9, polyorder : int = 5):
-
+def derive_ppg_signal_peaks(arr: np.ndarray, ppg_peaks: np.ndarray, ppg_feets: np.ndarray, window_length: int = 9, polyorder: int = 5) -> tuple:
     """
-    Derives and categorizes PPG signal peaks based on waveforms and peak types.
+    Derive and categorize PPG signal peaks based on waveforms and peak types.
 
     Parameters
     ----------
     arr : np.ndarray
-        PPG signal.
+        The PPG signal.
     ppg_peaks : np.ndarray
-        Indices of detected peaks in PPG signal.
+        Indices of detected peaks in the PPG signal.
     ppg_feets : np.ndarray
-        Indices of calculated feet.
+        Indices of calculated foot points.
     window_length : int
-        Window length for Savitzky-Golay filter.
-        Default is 9.
+        Window length for the Savitzky-Golay filter, by default 9.
     polyorder : int
-        Polynomial order for Savitzky-Golay filter.
-        Default is 5.
+        Polynomial order for the Savitzky-Golay filter, by default 5.
 
     Returns
     -------
-    tuple
-        Array indicating presence of identified dicrotic and diastolic peaks in PPG signal.
-        Array categorizing feet, systolic peak, dicrotic notch, and diastolic peaks in PPG signal.
+    nd_ppg_with_peaks
+        1-D binary array indicating the presence of identified dicrotic and diastolic peaks in the PPG signal.
+    nd_ppg_with_peak_types
+        1-D array categorizing the identified dicrotic and diastolic peaks in the PPG signal:
+        - 1: feet
+        - 2: Systolic peak
+        - 3: Dicrotic notch
+        - 4: Diastolic peak
 
     Examples
     --------
-    To find R peaks of given ECG signal.
+    To find the r-peaks of ECG in a given signal:
 
     .. plot::
        :include-source:
@@ -323,17 +325,17 @@ def derive_ppg_signal_peaks(arr : np.ndarray, ppg_peaks : np.ndarray, ppg_feets 
        plt.show()
     """
 
-    # Extract waveforms and initial peaks.
+    # Extract waveforms and initial peaks
     waveforms_ppg, mean_waveform_ppg = basic_algos.extract_waveforms(arr, (np.rint(ppg_feets)).astype(int), mode="fid_to_fid")
 
-    # Identify PPG peaks in waveforms.
+    # Identify PPG peaks in waveforms
     cumulative_ppg_peaks, initial_peaks_ppg_types, problems = _identify_ppg_peaks_in_waveform(waveforms_ppg,
                                                                                               window_length=window_length,
                                                                                               polyorder=polyorder)
 
     problems = np.unique(problems)
 
-    # Process identified peaks and types.
+    # Process identified peaks and types
     ppg_signal = np.ravel(waveforms_ppg)
     ppg_signal = ppg_signal[~np.isnan(ppg_signal)]
 
@@ -345,7 +347,7 @@ def derive_ppg_signal_peaks(arr : np.ndarray, ppg_peaks : np.ndarray, ppg_feets 
     for index, peak in enumerate(ppg_peaks_all):
         nd_ppg_with_peak_types[peak] = ppg_peaks_all_types[index]
 
-    # Find dicrotic and diastolic points and adjust the ppg-signal to fit using window based approach.
+    # Find dicrotic and diastolic points and adjust the ppg-signal to fit using window based approach
     d2x = savgol_filter(arr, window_length=9, polyorder=5, deriv=2)
     systolic_peaks = np.delete(ppg_peaks, problems)
 
@@ -367,43 +369,39 @@ def derive_ppg_signal_peaks(arr : np.ndarray, ppg_peaks : np.ndarray, ppg_feets 
 
     return nd_ppg_with_peaks, nd_ppg_with_peak_types
 
-def _find_dicrotic_and_diastolic(d2x_arr : np.ndarray, feets : np.ndarray, systolic : np.ndarray,
-                                 dicrotic : np.ndarray, diastolic : np.ndarray, window : int = 4):
-    
+def _find_dicrotic_and_diastolic(d2x_arr: np.ndarray, feets: np.ndarray, systolic: np.ndarray,
+                                 dicrotic: np.ndarray, diastolic: np.ndarray, window: int = 4):
     """
-    Identifies and categorizes dicrotic and diastolic points based on second derivative of PPG signal.
+    Identify and categorize dicrotic and diastolic points based on second derivative of the signal.
 
     Parameters
     ----------
     d2x_arr : np.ndarray
-        Second derivative of signal.
+        Second derivative of the signal.
     feets : np.ndarray
-        Indices for foot points of signal.
+        Indices representing foot points of the signal.
     systolic : np.ndarray
-        Indices for systolic points of signal.
+        Indices representing systolic points of the signal.
     dicrotic : np.ndarray
-        Indices for dicrotic points of signal.
+        Indices representing dicrotic points of the signal.
     diastolic : np.ndarray
-        Indices for diastolic points of signal.
+        Indices representing diastolic points of the signal.
     window : int
-        Half-width of window for peak identification.
-        Default is 4.
+        Half-width of the window for peak identification, by default 4.
 
     Returns
     -------
-    tuple
+    nd_ecg_with_peaks : numpy.ndarray
         Array with peaks marked as 1.
-        Array with peak types marked as 1, 2, 3 or 4.
-
-    Examples
-    --------
-    To identify and categorize dicrotic and diastolic points in PPG.
+    nd_ecg_with_peak_types : numpy.ndarray
+        Array with peak types marked as 1, 2, 3, or 4.
     
+    Examples
+    --------    
     .. code-block:: python
         from vitalwave import experimental
         experimental._find_dicrotic_and_diastolic(d2x_arr=der, feets=f, systolic=sys, dicrotic=dic, diastolic=dia, window=4)
     """
-
     nd_ecg_with_peaks = np.zeros(d2x_arr.shape[0])
     nd_ecg_with_peak_types = np.zeros(d2x_arr.shape[0])
 
@@ -423,39 +421,34 @@ def _find_dicrotic_and_diastolic(d2x_arr : np.ndarray, feets : np.ndarray, systo
 
     return nd_ecg_with_peaks, nd_ecg_with_peak_types
 
-
-def _identify_ppg_peaks_in_waveform(waveforms_ppg : list, window_length : int = 9, polyorder : int = 5):
-
+def _identify_ppg_peaks_in_waveform(waveforms_ppg, window_length: int = 9, polyorder: int = 5):
     """
-    Identifies and categorizes PPG peaks in waveforms.
+    Identify and categorize PPG signal peaks in waveforms.
 
     Parameters
     ----------
-    waveforms_ppg : list
-        PPG waveforms for peak identification.
+    waveforms_ppg : list of numpy.ndarray
+        List of PPG waveforms for peak identification.
     window_length : int
-        Window length for Savitzky-Golay filter.
-        Default is 9.
+        Window length for the Savitzky-Golay filter, by default 9.
     polyorder : int
-        Polynomial order for Savitzky-Golay filter.
-        Default is 5 due to twin-peak structure of waveform.
+        Polynomial order for the Savitzky-Golay filter, due to the twin-peak structure of the waveform, the correct order is 5.
 
     Returns
     -------
-    tuple
-        List of cumulative peak locations for all waveforms categorized by types.
+    cumulative_ppg_peaks : list of numpy.ndarray
+        List of cumulative peak locations for all waveforms, categorized by types.
+    initial_peaks_ppg_types : list of numpy.ndarray
         List of peak type categorizations corresponding to initial_peaks_ppg.
+    problems : list of int
         List of indexes of waveforms where peak identification encountered issues.
     
     Examples
-    --------
-    To identify and categorize PPG peaks.
-    
+    --------    
     .. code-block:: python
         from vitalwave import experimental
         experimental._identify_ppg_peaks_in_waveform(waveforms_ppg=waves, window_length=9, polyorder=5)
     """
-
     idx_peak_ids = 0
     real_index = 0
 
@@ -480,11 +473,11 @@ def _identify_ppg_peaks_in_waveform(waveforms_ppg : list, window_length : int = 
             idx = (np.abs(np.asarray(initial_peaks_ppg) - p_1)).argmin()
 
             if initial_peaks_ppg.shape[0] == 3:
-                # Three peaks found.
+                # Three peaks found
                 initial_peaks_ppg_3.append(initial_peaks_ppg)
 
             elif initial_peaks_ppg.shape[0] == 1:
-                # Main peak found and two peaks derived.
+                # main peak found; two peaks derived
                 d2x = savgol_filter(waveform, window_length=window_length, polyorder=polyorder, deriv=2)
                 diastolic, dicrotic = _get_diastolic_dicrotic_points(arr=d2x, start=p_1, stop=p_2)
 
@@ -518,60 +511,63 @@ def _identify_ppg_peaks_in_waveform(waveforms_ppg : list, window_length : int = 
 
     return cumulative_ppg_peaks, initial_peaks_ppg_types, problems
 
-def _get_diastolic_dicrotic_points(arr : np.ndarray, start : int, stop : int):
-
+def _get_diastolic_dicrotic_points(arr, start, stop):
     """
-    Calculates diastolic and dicrotic indices based on PPG signal, peak indices, and onset indices.
+    Calculate diastolic (dia) and dicrotic (dic) indices based on PPG signal, peak indices, and onset indices.
 
-    If only systolic peak is found then key steps selected to find dicrotic and diastolic peaks are:
-    Start from second-order-derivative of PPG signal; from waveform arg_max to waveform argmin.
-    Isolate peaks between positive and negative highs; dicrotic signal is found from positive-highs.
-    Find index of maximum peak in dicrotic region and find nearest diastolic peak.
-    Return set of indexes for diastolic and dicrotic points.
+    if only the systolic peak is found; the key steps selected to find the dicrotic and diastolic peaks are:
 
-    Article to reference in https://www.frontiersin.org/articles/10.3389/fbioe.2023.1199604/full.
-    Reference to Savitzky-Golay used to calculate derivatives in https://eigenvector.com/wp-content/uploads/2020/01/SavitzkyGolay.pdf.
+    * Start from a second-order-derivative of The PPG signal; from the waveform arg_max to the waveform argmin
+    * isolate peaks between positive and negative highs; dicrotic signal is found from the positive-highs
+    * Find the index of the maximum peak in the dicrotic region and find the nearest diastolic peak
+    * return a set of index:s for diastolic and dicrotic
+
+    Article to reference
+
+    * https://www.frontiersin.org/articles/10.3389/fbioe.2023.1199604/full
+
+    Savitzky-Golay - used to calculating the derivatives
+
+    * https://eigenvector.com/wp-content/uploads/2020/01/SavitzkyGolay.pdf
 
     Parameters
     ----------
-    arr : np.ndarray
-        Second order derivative of PPG signal.
-    start : int
-        Main peak of PPG signal.
-    stop : int
-        Local minimum at end of waveform.
+    arr
+        Second order of derivative of The PPG signal.
+    start
+        main peak of the PPG signal
+    stop
+        local minimum at the end of the waveform .
 
     Returns
     -------
-    tuple
+    diastolic
         Indices representing diastolic points.
+    dicrotic
         Indices representing dicrotic points.
-
-    Examples
-    --------
-    To calculate PPG parameter values.
     
+    Examples
+    --------    
     .. code-block:: python
         from vitalwave import experimental
         experimental._get_diastolic_dicrotic_points(arr=ppg, start=start, stop=stop)
     """
-
-    # Extract the relevant portion of the signal.
+    # Extract the relevant portion of the signal
     signal_portion = arr[start:stop]
 
-    # Isolate between positive and negative highs.
+    # isolate between positive and negative highs
     aux_dic, _ = find_peaks(signal_portion)
     aux_dia, _ = find_peaks(-signal_portion)
 
     if len(aux_dic) != 0:
 
-        # Find the index of the maximum peak in the dicrotic region.
+        # Find the index of the maximum peak in the dicrotic region
         ind_max, = np.where(signal_portion[aux_dic] == np.max(signal_portion[aux_dic]))
         aux_dic_max = aux_dic[ind_max]
 
         if len(aux_dia) != 0:
 
-            # Calculate distances between dicrotic and diastolic peaks.
+            # Calculate distances between dicrotic and diastolic peaks
             nearest = aux_dia - aux_dic_max
             aux_dic = aux_dic_max
             dicrotic = (aux_dic + start).astype(int)
@@ -582,7 +578,7 @@ def _get_diastolic_dicrotic_points(arr : np.ndarray, start : int, stop : int):
 
             if len(nearest) != 0:
 
-                # Find the nearest diastolic peak.
+                # Find the nearest diastolic peak
                 ind_nearest, = np.where(nearest == np.min(nearest))
                 aux_dia = aux_dia[ind_nearest]
                 diastolic = (aux_dia + start).astype(int)
@@ -591,45 +587,48 @@ def _get_diastolic_dicrotic_points(arr : np.ndarray, start : int, stop : int):
 
     return diastolic, dicrotic
 
-def do_ppg_from_raw_signal(arr : np.ndarray, fs : float, signal_integration_window : float = 0,
-                           segment : int = 2, threshold : float = 2, return_as_segment : bool = False):
-    
+def do_ppg_from_raw_signal(arr: np.ndarray, fs: float, signal_integration_window: float = 0,
+                           segment: int = 2, threshold: float = 2, return_as_segment = False):
     """
-    Processes PPG data from raw signals while segmenting and detecting anomalies.
+    Process PPG data from raw signals, segmenting and detecting anomalies.
 
     Parameters
     ----------
     arr : np.ndarray
         Raw PPG signal.
+
     fs : float
-        Sampling rate.
+        Sampling frequency.
+
     signal_integration_window : float, optional
-        Integration window size.
-        Default is 0.
-        If greater than 0, function will perform area under curve integration.
+        Integration window size (default is 0).
+        If greater than 0, the function will perform area under the curve integration.
+
     segment : int, optional
-        Number of segments to divide signal into.
-        Default is 2.
-        If set to 0, function will process entire array as a single segment.
+        Number of segments to divide the signal into (default is 2).
+        If set to 0, the function will process the entire array as a single segment.
+
     threshold : float, optional
-        Threshold for anomaly detection.
-        Default is 2.
-        Anomalies are detected based on differences between consecutive peaks.
+        Threshold for anomaly detection (default is 2).
+        Anomalies are detected based on the differences between consecutive peaks.
         Peaks with differences greater than this threshold are considered anomalies.
-    return_as_segment, optional
-        If False, returns a single array with segments or complete signal without anomalies.
+
+    return_as_segment : bool, optional
+        If False (default), returns a single array with segments (or the complete signal)
+        without anomalies.
         If True, returns individual segments along with any detected anomalies.
-        Default is False.
 
     Returns
     -------
-    tuple
+    segments : list of np.ndarray
         Segmented or complete PPG signal.
+
+    peaks_all : list of np.ndarray
         Detected peaks.
 
     Examples
     --------
-    To preprocess, validate, and find peaks or valleys in a PPG signal:
+    To preprocess, validate, and find the peaks or valleys in a ppg signal:
 
     .. plot::
        :include-source:
@@ -668,38 +667,40 @@ def do_ppg_from_raw_signal(arr : np.ndarray, fs : float, signal_integration_wind
 
        plt.show()
 
-    If segmentation is enabled meaning segment > 0, function divides signal into multiple segments and detects peaks within each segment.
-    Anomalies are detected based on differences between consecutive peak indices.
-    Segments without anomalies are returned.
-    If segmentation is disabled  meaning segment = 0, entire input signal is processed as single segment.
+    Notes
+    -----
+    If segmentation is enabled (segment > 0), the function divides the signal into multiple
+    segments and detects peaks within each segment. Anomalies are detected based on the
+    differences between consecutive peak indices. Segments without anomalies are returned.
+
+    If segmentation is disabled (segment = 0), the entire input signal is processed as a
+    single segment.
 
     ppg_data, peak_indices = do_ppg_from_raw_signal(arr = nd_ppg["ppg_1_ir"], fs = fs, segment = 6,
                                                     threshold = 3, return_as_segment=True)
     """
-
-    # To allow for segmented and non segmented signal.
+    # to allow for segmented and non segmented signal
     idx_segment_ids = 0
 
     segments = []
     peaks_all = []
 
-    # Pre-filter.
+    # pre-filter
     ppg_filtered = [basic_algos.min_max_normalize(basic_algos.butter_filter(arr=arr, n=4, wn=[0.5, 8],
                                                                             filter_type='bandpass', fs=int(fs)))]
 
-    # Make an area under the curve.
+    # make an area under the curve / volumetric
     if signal_integration_window > 0:
         ppg_filtered = basic_algos.moving_average_filter(arr=ppg_filtered[0],
                                                          window=int(signal_integration_window),
                                                          type = "triang")
 
-    # Segment the signal using np.split.
-    # Causes an error unless the split is not even.
+    # segment the signal / using np.split causes an error unless the split is not even
     if segment > 0:
         segment_length = len(ppg_filtered[0]) // segment * segment
         ppg_filtered = np.split(ppg_filtered[0][:segment_length], segment)
 
-    # Single segment and multiple segments are processed within the same process.
+    # here single segment and multiple segments are processed within the same process.
     for ppg_segment in ppg_filtered:
         feet_2_ppg = ampd(-ppg_segment, int(fs))
         peaks_2_ppg = ampd(ppg_segment, int(fs))
@@ -721,8 +722,7 @@ def do_ppg_from_raw_signal(arr : np.ndarray, fs : float, signal_integration_wind
         elif segment == 0:
             return ppg_segment, outliers
 
-    # Check the completed signal.
-    # The peak detection is re-iterated with the passing signal.
+    # also check the completed signal, here the peak detection is re-iterated with the passing signal.
     if not return_as_segment:
         ppg_segments_all = np.concatenate(segments)
 
@@ -743,33 +743,29 @@ def do_ppg_from_raw_signal(arr : np.ndarray, fs : float, signal_integration_wind
 
     return segments, peaks_all
 
-def _has_gap_between_segments(difference_values : np.ndarray, threshold : float = 2):
-    
+def _has_gap_between_segments(difference_values, threshold: float = 2):
     """
-    Detects anomalies based on actionable difference value based metric.
+    Detect anomalies based on actionable difference value based metric.
 
     Parameters
     ----------
-    difference_values : np.ndarray
-        Array of differences between PPG cycles feet and peaks.
+    difference_values
+        Array of differences between PPG cycle feet and peaks.
+
     threshold : float
-        Threshold for anomaly detection.
-        Default is 2.
+        Threshold for anomaly detection (default is 2).
 
     Returns
     -------
-    outliers : list
+    outliers
         Indexes of potential outliers.
-
-    Examples
-    --------
-    To get anomalies of signal.
     
+    Examples
+    --------    
     .. code-block:: python
         from vitalwave import experimental
         experimental._has_gap_between_segments(difference_values=dif, threshold=2)
     """
-
     q1 = np.percentile(difference_values, 25)
     q3 = np.percentile(difference_values, 75)
 
@@ -778,7 +774,7 @@ def _has_gap_between_segments(difference_values : np.ndarray, threshold : float 
     lower_bound = q1 - (iqr * threshold)
     upper_bound = q3 + (iqr * threshold)
 
-    # Derive coefficient and do min threshold + coef * 1.
+    # derive coefficient and do min threshold + coef * 1
     outliers = [i for i, value in enumerate(difference_values) if value < lower_bound or value > upper_bound]
 
     return outliers

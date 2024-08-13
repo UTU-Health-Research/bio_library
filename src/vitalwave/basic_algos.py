@@ -5,24 +5,22 @@ from pywt import wavedec, waverec
 from scipy.interpolate import interp1d
 from scipy.signal import filtfilt, butter, hilbert, sosfiltfilt, windows, medfilt
 
-def butter_filter(arr : np.ndarray, n : int, wn : np.ndarray, filter_type : str, fs : int):
-
+def butter_filter(arr: np.ndarray, n: int, wn: np.ndarray, filter_type: str, fs: int) -> np.ndarray:
     """
     Performs zero-phase Butterworth filtering.
-
+    
     Parameters
     ----------
     arr : np.ndarray
-        Signal to be filtered.
+        Signal that will be filtered.
     n : int
-        Order of filter.
+        Order of the filter.
     wn : np.ndarray
         Cutoff frequencies.
     filter_type : str
-        Type of filter.
-        Alternatives are 'lowpass', 'highpass', 'bandpass', and 'bandstop'.
+        Type of the filter. Alternatives: lowpass, highpass, bandpass, bandstop.
     fs : int
-        Sampling rate.
+        Sampling frequency of the signal.
     
     Returns
     -------
@@ -31,20 +29,17 @@ def butter_filter(arr : np.ndarray, n : int, wn : np.ndarray, filter_type : str,
 
     Examples
     --------
-    To filter without normalization.
+    Without normalization:
 
     .. code-block:: python
-        from vitalwave import basic_algos
-        basic_algos.butter_filter(arr=nd_ecg, n=4, wn=[0.5, 8], filter_type='bandpass', fs=200)
+       basic_algos.butter_filter(arr=nd_ecg, n=4, wn=[0.5, 8], filter_type='bandpass', fs=fs)
 
-    \nTo filter with normalization.
+    With normalization:
 
     .. code-block:: python
-        from vitalwave import basic_algos
-        basic_algos.min_max_normalize(basic_algos.butter_filter(arr=nd_ecg, n=4, wn=[0.5, 8],
-                                                                filter_type='bandpass', fs=200))
+       basic_algos.min_max_normalize(basic_algos.butter_filter(arr=nd_ecg, n=4, wn=[0.5, 8],
+                                                               filter_type='bandpass', fs=fs))
     """
-
     # Second-order sections.
     sos = butter(n, wn, filter_type, fs=fs, output='sos')
     # Filtering.
@@ -52,43 +47,40 @@ def butter_filter(arr : np.ndarray, n : int, wn : np.ndarray, filter_type : str,
 
     return arr_filtered
 
-def min_max_normalize(arr : np.ndarray, min_val : float = 0.0, max_val : float = 1.0):
-
+def min_max_normalize(arr: np.ndarray, min_val: float=0.0, max_val: float=1.0) -> np.ndarray:
     """
-    Min-max normalizes array.
+    Min-max normalizes an array.
 
     Parameters
     ----------
     arr : np.ndarray
-        Signal to be normalized.
+        Signal which will be normalized.
     min_val : float
-        Minimum value of resulting signal.
+        Minimum value of the resulting signal (default 0.0).
     max_val : float
-        Maximum value of resulting signal.
-
+        Maximum value of the resulting signal (default 1.0).
+    
     Returns
     -------
     s_norm : np.ndarray
-        Normalized version of signal to be normalized.
+        Normalized version of arr.
 
     Examples
     --------
-    To normalize signal-values without using standard-scaler based method.
+    To normalize the signal-values without using the standard-scaler based method:
 
-    .. code-block:: python 
+    .. code-block:: python
         from vitalwave import basic_algos
-        basic_algos.min_max_normalize(arr=nd_ecg)
+        basic_algos.min_max_normalize(arr = nd_ecg)
     """
-
     s_norm = min_val + (arr - np.nanmin(arr)) * (max_val - min_val) / \
         (np.nanmax(arr) - np.nanmin(arr))
 
     return s_norm
 
-def resample(timestamps : np.ndarray, arr : np.ndarray, timestamps_new : np.ndarray = None, dt : float = None):
-    
+def resample(timestamps: np.ndarray, arr: np.ndarray, timestamps_new: np.ndarray=None, dt: float = None) -> tuple[np.ndarray, np.ndarray]:
     """
-    Resamples time series to new time axis.
+    Resample a time series to a new time axis.
 
     Parameters
     ----------
@@ -97,33 +89,31 @@ def resample(timestamps : np.ndarray, arr : np.ndarray, timestamps_new : np.ndar
     arr : np.ndarray
         Original values.
     timestamps_new : np.ndarray
-        Timestamps used as basis for resampling.
-        Must be in same unit as original timestamps.
-        Default is None.
+        Timestamps used as the basis in resampling (default: None).
+        This must be in the same unit as timestamps.
     dt : float
-        Timestep of new time series.
-        Must be in same unit as original timestamps.
-        Default is None.
+        Timestep of the new time series (default: None).
+        This must be in the same unit as timestamps.
     
     Returns
     -------
-    tuple
-        Array of resampled timestamps.
-        Array of resampled values.
+    timestamps_new
+        An array of resampled timestamps.
+    arr_new
+        An array of resampled values.
 
     Examples
     --------
-    To setup new time-based frequency to existing signal.
+    To setup new time based frequency to an existing signal:
 
     .. code-block:: python
-       basic_algos.resample(timestamps=ecg_ts, arr=ecg, ts_new=timestamps_new)
+       basic_algos.resample(timestamps = ecg_ts, arr = ecg, ts_new = timestamps_new)
 
-    \nOr by proving :math:`dt` time variable.
+    or by proving the :math:`\Delta` time variable:
 
     .. code-block:: python
-       basic_algos.resample(timestamps=ecg_ts, arr=ecg, dt=0.005)
+       basic_algos.resample(timestamps = ecg_ts, arr = ecg, dt = 0.005)
     """
-
     if timestamps_new is None and dt is None:
         raise ValueError('Either timestamps_new or dt must be given.')
 
@@ -137,15 +127,16 @@ def resample(timestamps : np.ndarray, arr : np.ndarray, timestamps_new : np.ndar
 
     return timestamps_new, arr_new
 
-def derivative_filter(arr : np.ndarray, fs : int):
-    
+def derivative_filter(arr: np.ndarray, fs: int) -> np.ndarray:
     """
-    Does derivative filtering according to Pan-Tompkins algorithm.
+    Derivative filtering.
+
+    A derivative filter according to Pan-Tompkins algorithm.
 
     Parameters
     ----------
     arr : np.ndarray
-        Data to be filtered.        
+        Data that will be filtered.        
     fs : int
         Sampling rate.
 
@@ -156,15 +147,15 @@ def derivative_filter(arr : np.ndarray, fs : int):
 
     Examples
     --------
-    To highlight peaks and valleys of original signal.
+    To highlight the the peaks and valleys of the original signal.
+    The use of the derivative filter is linked with the moving_average_filter:
 
     .. code-block:: python
         from vitalwave import basic_algos
         basic_algos.derivative_filter(arr=ecg, fs=200)
 
-    \nExample is linked with moving_average_filter function found in same module.
+    An example to have the functions working together is linked with it.
     """
-
     # Filter coefficients.
     coeffs = np.array([1, 2, 0, -2, -1]) * (1 / 8) * fs
     # Forward-backward filtering.
@@ -172,29 +163,27 @@ def derivative_filter(arr : np.ndarray, fs : int):
 
     return arr_filt
 
-def moving_average_filter(arr : np.ndarray, window : int, type : str = 'triang'):
-    
+def moving_average_filter(arr: np.ndarray, window: int, type = "triang") -> np.ndarray:
     """
-    Does moving window integration and moving average.
+    Moving window integration and moving average.
 
     Parameters
     ----------
     arr : np.ndarray
-        Data to be integrated.
+        Data that will be integrated.
     window : int
-        Number of samples in window.
-    type : str
-        Alternatives are 'triang' and 'moving_avg'.
-        Default is 'triang'.
+        Number of samples in the window.
+    type
+        Valid types to call for are "triang" and "moving_avg" (default: "triang").
 
     Returns
     -------
-    data : np.ndarray
+    data : nd_array
         Integrated data or moving average data.
 
     Examples
     --------
-    To produce distorted signal highlighting R peak in QRS complex of ECG.
+    To produce a distorted signal highlighting the r-peak in the QRS-complex of the ECG.
 
     .. plot::
        :include-source:
@@ -224,9 +213,8 @@ def moving_average_filter(arr : np.ndarray, window : int, type : str = 'triang')
 
        plt.show()
 
-    Example is linked with derivative_filter function found in same module.
+    The example is linked with the derivative_filter function found in the same module.
     """
-
     match type:
         case "triang":
             data = np.convolve(arr, windows.triang(window), mode='same')
@@ -237,37 +225,38 @@ def moving_average_filter(arr : np.ndarray, window : int, type : str = 'triang')
 
     return data
 
-def wavelet_transform_signal(arr : np.ndarray, dlevels : int, cutoff_low : int, cutoff_high : int, dwt_transform : str = 'bior4.4'):
-    
+#NEEDS TO BE CHECKED
+def wavelet_transform_signal(arr: np.ndarray, dwt_transform, dlevels, cutoff_low, cutoff_high):
     """
-    Designed to work with noisy signals as first-pass mechanism.
-    Performs wavelet decomposition on input channel using pywt.wavedec.
-    Produces list of coefficients.
-    Coefficients in specified ranges are multiplied by zero to remove their contribution.
-    Reconstructed signal is returned based on wavelet coefficients.
+    Designed to work with noisy signal as a first-pass mechanism.
+
+    Performs wavelet decomposition on the input channel using pywt.wavedec,
+    This returns a <list> of coefficients. The coefficients in the specified ranges are
+    multiplied by zero to remove their contribution.
+    Finally, a reconstructed signal is returned based on the wavelet coefficients.
 
     Parameters
     ----------
     arr : np.ndarray
         Signal to process.
-    dlevels : int
-        Wavedeck level parameter.
-    cutoff_low : int
-        Scale up to which coefficients will be zeroed.
-    cutoff_high : int
-        Scale from which coefficients will be zeroed.
-    dwt_transform : str
-        Wavelet transformation function.
-        Default is 'bior4.4'.
+    dwt_transform
+        Wavelet transformation function - good default: 'bior4.4'.
+    dlevels
+        Wavedeck: level parameter.
+    cutoff_low
+        The scale up to which coefficients will be zeroed.
+    cutoff_high
+        The scale from which coefficients will be zeroed.
 
     Returns
     -------
-    wavelet_trans : any
-        Corrected signal with inverse wavelet transform.
+    wavelet_trans : np.ndarray
+        corrected_signal with inverse wavelet transform.
 
     Examples
     --------
-    To clean up noisy signals prior to processing them with Butterworth bandpass filter.
+    To clean-up noisy signal prior to processing it with the Butterworth bandpass-filter.
+    The example-code includes the linking with the Butterworth bandpass filter:
 
     .. plot::
        :include-source:
@@ -303,56 +292,61 @@ def wavelet_transform_signal(arr : np.ndarray, dlevels : int, cutoff_low : int, 
        fig.tight_layout()
 
        plt.show()
-       
-       Example is linked with Butterworth bandpass filter found in same module.
     """
-
     coeffs = wavedec(arr, dwt_transform, level=dlevels)
 
-    # Scale 0 to cutoff_low.
+    # scale 0 to cutoff_low
     for ca in range(0, cutoff_low):
         coeffs[ca] = np.multiply(coeffs[ca], [0.0])
 
-    # Scale cutoff_high to end.
+    # scale cutoff_high to end
     for ca in range(cutoff_high, len(coeffs)):
         coeffs[ca] = np.multiply(coeffs[ca], [0.0])
 
     wavelet_trans = waverec(coeffs, dwt_transform)
-
     return wavelet_trans
 
-def extract_waveforms(arr : np.ndarray, fid_points : np.ndarray, mode : str, window : int = None):
-    
+#window method does not allow assymteric case
+#the window needs to be odd, not good
+#example code has some weird make odd nonsense
+#lets add method yang-yang has been using
+
+def extract_waveforms(arr: np.ndarray, fid_points: np.ndarray, 
+                      mode: str, window: int = None) -> tuple[np.ndarray, np.ndarray]:
     """
-    Extracts waveforms from signal using array of fiducial points.
+    Extracts waveforms from a signal using an array of fiducial points.
 
     Parameters
     ----------
     arr : np.ndarray
-        Signal with extracted waveforms.
+        Signal from which the waveforms are extracted.
     fid_points : np.ndarray
-        Fiducial points used as basis for extracting waveforms.
+        Fiducial points used as a basis for extracting the waveforms.
     mode : str
-        Usage style of fiducial points to extract waveforms.
-        Alternatives:
-        'fid_to_fid' from one fiducial point to next one.
-        'nn_interval' waveform is extracted around each fiducial point by taking half of NN interval before and after.
-        'window' waveform is extracted around each fiducial point using window that must then be defined.
+        How the fiducial points are used to extract the waveforms:
+        - fid_to_fid: from one fiducial point to the next one.
+        For example, from one PPG foot to another one.
+        - nn_interval: the waveform is extracted around each
+        fiducial point by taking half of the NN interval before
+        and after.
+        - window: the waveform is extracted around each fiducial
+        point using a window. NOTE: In this case the parameter
+        window must be defined.
     window : int
-        Number of samples to take around fiducial points.
-        Must be odd because number of samples taken from both sides of window is window / 2.
-        Default is None.
+        The number of samples to take around the fiducial points.
+        The parameter must be odd. The number of samples taken 
+        from left and right is window // 2.
 
     Returns
     -------
-    tuple
-        Array of extracted waveforms where each row corresponds to one waveform.
-        Calculated mean waveform.
+    waveforms
+        An array of extracted waveforms where each row corresponds
+        to one waveform.
+    mean_waveform
+        The calculated mean waveform.
 
     Examples
     --------
-    To plot extracted waveforms.
-
     .. plot::
        :include-source:
 
@@ -371,10 +365,10 @@ def extract_waveforms(arr : np.ndarray, fid_points : np.ndarray, mode : str, win
 
        make_odd = lambda x: x + (x % 2 == 0)
 
-       # Calculate ECG r-peaks.
+       # calculate ECG r-peaks
        ecg_r_peaks = ecg_modified_pan_tompkins(ecg, fs=fs)
 
-       # Calculate ppg peaks and valleys wiht modified smoothed peak detection (MSPTD)
+       # calculate ppg peaks and valleys - msptd (Modified Smoothed Peak Detection)
        ppg_msptd_peaks, ppg_msptd_feet = msptd(ppg, fs=fs)
 
        ppg_wfs, ppg_wfs_mean = extract_waveforms(ppg, ppg_msptd_feet, 'fid_to_fid')
@@ -396,8 +390,9 @@ def extract_waveforms(arr : np.ndarray, fid_points : np.ndarray, mode : str, win
        plot_wfs(ppg_wfs, ppg_wfs_mean, 'PPG waveforms, feet to feet')
        plot_wfs(ecg_wfs1, ecg_wfs1_mean, 'ECG waveforms, window')
        plot_wfs(ecg_wfs2, ecg_wfs2_mean, 'ECG waveforms, NN interval')
-    """
 
+    To extract the waveforms from the source-signal Fiducial point is required:
+    """
     # Parameter validation.
     if mode == 'window':
         if window is None:
@@ -419,7 +414,8 @@ def extract_waveforms(arr : np.ndarray, fid_points : np.ndarray, mode : str, win
         waveforms = np.full((len(fid_points) - 2, int(nn_max)), np.nan)
         # Center point of the longest NN interval.
         nn_max_center = nn_max // 2
-        # Loop through the fiducial points starting from the second until the second last.
+        # Loop through the fiducial points starting from the second
+        # until the second last.
         for i in range(1, len(fid_points) - 1):
             # Number of samples to take from left and right.
             samples_left = (fid_points[i] - fid_points[i - 1]) // 2
@@ -428,9 +424,9 @@ def extract_waveforms(arr : np.ndarray, fid_points : np.ndarray, mode : str, win
             waveforms[i - 1, nn_max_center - samples_left:nn_max_center + samples_right] = \
                 arr[fid_points[i] - samples_left:fid_points[i] + samples_right]
 
-        # Remove columns with just NaN values.
-        # These columns could happen due to integer divisions used above.
-        # This line is just a way to get rid of nanmean's "Mean of empty slice" warning.
+        # Remove columns with just NaN values. These columns could happen due to
+        # integer divisions used above. This line is just a way to get rid of 
+        # nanmean's "Mean of empty slice" warning.
         waveforms = waveforms[:, ~np.isnan(waveforms).all(axis=0)]    
 
     elif mode == 'window':
@@ -452,36 +448,32 @@ def extract_waveforms(arr : np.ndarray, fid_points : np.ndarray, mode : str, win
     
     return waveforms, mean_waveform
 
-def filter_hr(heart_rates : np.ndarray, kernel_size : int = 7, hr_max_diff : int = 16, hr_min : int = 40, hr_max : int = 180):
-    
+def filter_hr(heart_rates: np.ndarray, kernel_size: int = 7, 
+              hr_max_diff: int = 16, hr_min: int = 40, hr_max: int = 180) -> np.ndarray:
     """
-    Filters instantaneous HRs with median filter.
+    Filter instantaneous heart rates (HRs) with a median filter.
 
     Parameters
     ----------
     heart_rates : np.ndarray
-        Array of instantaneous HRs in bpm.
+        An array of instantaneous HRs [bpm].
     kernel_size : int
-        Kernel size used in median filter.
-        Default is 7.
+        Kernel size used in the median filter (default: 7).
     hr_max_diff : int
-        Maximum allowed HR difference in bpm.
-        Default is 16.
+        Maximum allowed HR difference [bpm] (default: 16).
     hr_min : int
-        Lowest allowed HR in bpm.
-        Default is 40.
+        Lowest allowed HR [bpm] (default: 40).
     hr_max : int
-        Highest allowed HR in bpm.
-        Default is 180.
+        Highest allowed HR [bpm] (default: 180).
     
     Returns
     -------
     heart_rates : np.ndarray
-        Filtered instantaneous HRs.
+        An array of filtered instantaneous HRs.
 
     Examples
     --------
-    To calculate initial heart beat validity based on existing set of values.
+    To calculate the initial heart-beat validity based on an existing set of values.
 
     .. plot::
        :include-source:
@@ -514,9 +506,8 @@ def filter_hr(heart_rates : np.ndarray, kernel_size : int = 7, hr_max_diff : int
        fig.tight_layout()
        plt.show()
 
-    Results show normal heart-rate variability along with abnormal.
+    The results show normal heart-rate variability along with abnormal.
     """
-
     # Make a copy to avoid modifying the original array.
     heart_rates = np.copy(heart_rates)
     # Median filtering.
@@ -529,32 +520,85 @@ def filter_hr(heart_rates : np.ndarray, kernel_size : int = 7, hr_max_diff : int
 
     return heart_rates
 
-def homomorphic_hilbert_envelope(arr : np.ndarray, fs : int, order : int = 1, cutoff_fz : int = 8):
-    
+import numpy as np
+from scipy import signal
+
+#THIS IS ESSENTAILLY SAME AS ABOVE, ONLY SIMPLE sdsd THRS IS ADDED, WE CAN SIMPLY PUT THIS PART INTO ABOVE WITH A BOOLEN ARG, DEFAULT NOT USE
+def filter_hr_peaks(peaks, fs:int, hr_min=40, hr_max=200, kernel_size=7, sdsd_max=0.35):
     """
-    Enhances waveform's envelope.
+    Filters peaks detected in PPG or ECG data to identify and exclude unreliable heart rate (HR) readings based on 
+    the variability of R-R intervals. It applies a median filter to smooth the HR signal and uses the Standard Deviation
+    of Successive Differences (SDSD) to exclude intervals with high variability.
+
+    Parameters:
+        peaks (array): Array of detected peaks' indices in the signal.
+        fs (int): Sampling frequency of the signal.
+        hr_min (int): Minimum allowable heart rate value in BPM.
+        hr_max (int): Maximum allowable heart rate value in BPM.
+        kernel_size (int): Size of the kernel used for median filtering.
+        sdsd_max (float): Maximum allowable SDSD. Peaks resulting in a higher SDSD will be excluded.
+
+    Returns:
+        np.array: An array of valid peak indices after filtering.
+        float: The mean heart rate computed from the valid R-R intervals.
+    """
+    # Calculate R-R intervals in samples
+    rri_s = np.diff(peaks)
+    # Convert R-R intervals into seconds
+    rri = rri_s / fs
+    # Calculate heart rate from R-R intervals
+    hr = 60 / rri
+    # Apply median filter to the heart rate signal to smooth it
+    hr_med = signal.medfilt(hr, kernel_size)
+    # Calculate the SDSD for the R-R intervals
+    rr_diff = np.diff(rri)
+    sdsd = np.std(rr_diff)
+
+    #ONLY THIS SIMPE THRS PART SEEMS TO BE NEW, OTHERWISE ALREADY INCLUDED IN ABOVE FUNCTION 
+    # Check if SDSD exceeds the acceptable maximum, if so return empty array and NaN
+    if sdsd_max is not None and sdsd > sdsd_max:
+        return np.array([]), np.nan
+  
+    # Create a mask for heart rate values within the specified range
+    valid_hr_mask = (hr_med >= hr_min) & (hr_med <= hr_max)
+    # Select valid R-R intervals
+    valid_rri = rri[valid_hr_mask]
+    # Calculate the mean heart rate from valid R-R intervals
+    valid_hr_mean = 60 / np.mean(valid_rri)
+    # Initialize valid peaks list with the first peak
+    valid_peaks = [peaks[0]]
+    # Calculate cumulative sum to find the valid peak indices # JUST USE CUMSUM
+    cumulative_sum = peaks[0]
+    for i in range(len(valid_rri)):
+        cumulative_sum += valid_rri[i] * fs
+        valid_peaks.append(int(cumulative_sum))
+    
+    # Return the array of valid peak indices and the mean heart rate
+    return np.array(valid_peaks), valid_hr_mean
+
+def homomorphic_hilbert_envelope(arr: np.ndarray, fs: int, order: int = 1, cutoff_fz: int = 8) -> np.ndarray:
+    """
+    The homomorphic_hilbert_envelope function is applied to enhance the waveform's envelope.
 
     Parameters
     ----------
     arr : np.ndarray
         Signal designed for transformation.
     fs : int
-        Sampling rate.
+        Sample frequency.
     order : int
-        Sharpness of transition between passband and stopband.
-        Default is 1.
+        Sharpness of transition between passband and stopband (default: 1).
     cutoff_fz : int
-        Critical frequency or frequencies of butter filter.
-        Default is 8.
+        The critical frequency or frequencies of the butter-filter (default: 8).
 
     Returns
     -------
     filtered_envelope : np.ndarray
-        Filtered envelope of input signal.
+        Filtered envelope of the input signal.
 
     Examples
     --------
-    To calculate homomorphic Hilbert envelope in order to produce a low-resolution mock-up signal of original signal.
+    To calculate the homomorphic Hilbert envelope; in order to produce a low-resolution mock-up signal of the original.
 
     .. plot::
        :include-source:
@@ -585,29 +629,27 @@ def homomorphic_hilbert_envelope(arr : np.ndarray, fs : int, order : int = 1, cu
 
        plt.show()
 
-    Result is signal with key features retained from original signal.
+    The end result is a signal with key features retained from the original signal
     """
-
-    # Apply a zero-phase low-pass 1st order Butterworth filter with a cutoff frequency of 8 Hz.
+    # Apply a zero-phase low-pass Butterworth filter, 1st order, with a cutoff frequency of 8 Hz
     b_low, a_low = butter(N = order, Wn = cutoff_fz, fs=fs, btype='lowpass')
 
-    # Calculate the Hilbert envelope of the input signal.
+    # Calculate the Hilbert envelope of the input signal
     analytic_signal = hilbert(arr)
     envelope = np.abs(analytic_signal)
 
-    # Apply the low-pass filter to the log of the envelope.
+    # Apply the low-pass filter to the log of the envelope
     log_envelope = np.log(envelope)
     filtered_envelope = np.exp(filtfilt(b_low, a_low, log_envelope))
 
-    # Remove spurious spikes in the first sample.
+    # Remove spurious spikes in the first sample
     filtered_envelope[0] = filtered_envelope[1]
 
     return filtered_envelope
 
-def calculate_time_delay(arr_ecg : np.ndarray, arr_ppg : np.ndarray, peaks_ecg : np.ndarray, fs : int):
-    
+def calculate_time_delay(arr_ecg: np.ndarray, arr_ppg: np.ndarray, peaks_ecg, fs: int) -> np.ndarray:
     """
-    Calculates time delay between ECG and PPG signals based on corresponding peaks.
+    Calculate time delay between ECG and PPG signals based on corresponding peaks.
 
     Parameters
     ----------
@@ -615,19 +657,21 @@ def calculate_time_delay(arr_ecg : np.ndarray, arr_ppg : np.ndarray, peaks_ecg :
         ECG signal.
     arr_ppg : np.ndarray
         PPG signal.
-    peaks_ecg : np.ndarray
-        Peaks in ECG signal.
+    peaks_ecg
+        Peaks in the ECG signal.
     fs : int
-        Sampling rate.
+        Sampling frequency.
+    key
+        Identifier, by default "id".
 
     Returns
     -------
-    locs_ppg : np.ndarray
+    locs_ppg : numpy.ndarray
         Timestamps of corresponding PPG peaks.
 
     Examples
     --------
-    To syncronize ECG and PPG peaks discovery.
+    To Syncronize ECG and PPG peaks discovery.
 
     .. plot::
        :include-source:
@@ -647,10 +691,10 @@ def calculate_time_delay(arr_ecg : np.ndarray, arr_ppg : np.ndarray, peaks_ecg :
        from vitalwave.basic_algos import calculate_time_delay
        from vitalwave.peak_detectors import ecg_modified_pan_tompkins, msptd
 
-       # Calculate ECG R peaks.
+       # calculate ECG r-peaks
        ecg_r_peaks = ecg_modified_pan_tompkins(ecg, fs=fs)
 
-       # Calculate PPG peaks and valleys with modified smoothed peak detection (MSPD).
+       # calculate ppg peaks and valleys - msptd (Modified Smoothed Peak Detection)
        ppg_msptd_peaks, ppg_msptd_feet = msptd(ppg, fs=fs)
 
        locs_ppg = calculate_time_delay(arr_ecg=ecg, arr_ppg=ppg,
@@ -670,84 +714,71 @@ def calculate_time_delay(arr_ecg : np.ndarray, arr_ppg : np.ndarray, peaks_ecg :
        fig.tight_layout()
        plt.show()
 
-    Results show systolic PPG-peak discovery by using Pan-Tompkins algorithm.
+    The results show the systolic PPG-peak discovery with using the ECG-Pan-Tomkins based method.
     """
-
     locs_ecg_corrected = _find_corresponding(arr_ecg, peaks_ecg, 0.5 * fs)
     locs_ppg = _find_corresponding(arr_ppg, locs_ecg_corrected, 0.5 * fs, sym=False)
 
     return locs_ppg
 
-def _find_corresponding(arr : int, peaks : list, w : int, sym : bool = True):
-    
+def _find_corresponding(arr, peaks, w, sym=True):
     """
-    Finds corresponding peaks in given channel by using certain-sized window.
+    Find corresponding peaks in the given channel using a window of a certain size.
 
     Parameters
     ----------
-    arr : int
+    arr
         Signal channel.
-    peaks : list
+    peaks
         List of peaks.
-    w : int
+    w
         Window size.
     sym : bool, optional
-        If True, uses a symmetric window.
-        If False, uses an asymmetric window.
-        Default is True.
+        If True, use a symmetric window; otherwise, use an asymmetric window, by default True.
 
     Returns
     -------
     corr_locs : np.ndarray
-        Corresponding peaks in array.
-
+        Corresponding peaks.
+    
     Examples
     --------
-    To find peaks corresponding to a given set of peaks.
-
     .. code-block:: python
         from vitalwave import basic_algos
         basic_algos._find_corresponding(arr=1, peaks=peaks, w=5, sym=True)
     """
-
     lower_w, upper_w = (int(w / 2), int(w / 2)) if sym else (int(0), int(w))
     corr_locs = []
     for loc in peaks:
         l1, l2 = max(loc - lower_w, 0), min(loc + upper_w, len(arr))
         corr_locs.append(l1 + np.argmax(arr[l1:l2]))
-    
-    corr_locs = np.array(corr_locs)
 
-    return corr_locs
+    return np.array(corr_locs)
 
-def segmenting (arr : np.ndarray, window_size : int, overlap : int):
-    
+def segmenting(arr: np.ndarray, window_size: int, overlap: int):
     """
-    Segments array into overlapping frames.
+    Segment an array into overlapping frames.
 
     Parameters
     ----------
     arr : np.ndarray
         Input array to segment.
     window_size : int
-        Size of window.
+        Size of the window.
     overlap : int
         Overlap between segments.
 
     Returns
     -------
-    frames : list
-        Segmented frames.
-
+    frames
+        List of segmented frames.
+    
     Examples
     --------
-    To segment signal into overlapping frames.
-
     .. code-block:: python
         from vitalwave import basic_algos
         basic_algos.segmenting(arr=ecg, window_size=5, w=5, overlap=1)
     """
-
     frames = []
     step = window_size - overlap
 

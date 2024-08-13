@@ -1,9 +1,8 @@
 import numpy as np
 
-def get_ppg_peak_amplitude_ratio(arr : np.ndarray, feets : np.ndarray, systolic_peaks : np.ndarray, diastolic_peaks : np.ndarray):
-
+def get_ppg_peak_amplitude_ratio(arr: np.ndarray, feets: np.ndarray, systolic_peaks: np.ndarray, diastolic_peaks: np.ndarray) -> list:
     """
-    Calculates amplitude ratio between systolic and diastolic peaks in an array.
+    Calculate the amplitude ratio between systolic and diastolic peaks in an array.
 
     amplitude_ratio = get_amplitude_ratio(arr = nd_ppg_peaks["filt_ppg_signal"], feets = ppg_feets,
                                       systolic_peaks=ppg_systolic, diastolic_peaks=ppg_diastolic)
@@ -11,22 +10,22 @@ def get_ppg_peak_amplitude_ratio(arr : np.ndarray, feets : np.ndarray, systolic_
     Parameters
     ----------
     arr : np.ndarray
-        Input data.
+        An array containing the data.
     feets : np.ndarray
-        Indices for feets or footprints of specific events.
+        An array of indices representing the feets (or footprints) of specific events.
     systolic_peaks : np.ndarray
-        Indices for systolic peaks.
+        An array of indices representing the systolic peaks.
     diastolic_peaks : np.ndarray
-        Indices for diastolic peaks.
+        An array of indices representing the diastolic peaks.
 
     Returns
     -------
     ratio : list
-        Amplitude ratios calculated as arr[systolic_peaks[index]] / arr[diastolic_peaks[index]].
+        A list of amplitude ratios calculated as arr[systolic_peaks[index]] / arr[diastolic_peaks[index]].
 
     Examples
     --------
-    To find amplitude ratios of systolic and diastolic peaks in given signal.
+    To find the amplitude ratios of the systolic and diastolic peaks in a given signal:
 
     .. plot::
        :include-source:
@@ -63,7 +62,6 @@ def get_ppg_peak_amplitude_ratio(arr : np.ndarray, feets : np.ndarray, systolic_
        ax.boxplot(l_ratio)
        plt.show()
     """
-
     ratio = []
 
     for index in range(feets.shape[0]):
@@ -72,10 +70,9 @@ def get_ppg_peak_amplitude_ratio(arr : np.ndarray, feets : np.ndarray, systolic_
 
     return ratio
 
-def get_ppg_peak_integral_ratio(arr : np.ndarray, feets : np.ndarray, dicrotic_valley : np.ndarray, problems : np.ndarray):
-    
+def get_ppg_peak_integral_ratio(arr: np.ndarray, feets: np.ndarray, dicrotic_valley: np.ndarray, problems: np.ndarray) -> list:
     """
-    Calculates integral ratio between systolic and diastolic intervals in an array.
+    Calculate the integral ratio between systolic and diastolic intervals in an array.
 
     integrals = get_integral_ratio(arr = nd_ppg_peaks["filt_ppg_signal"], feets = ppg_feets,
                                    dicrotic_valley = ppg_dicrotic, problems = [121])
@@ -83,22 +80,22 @@ def get_ppg_peak_integral_ratio(arr : np.ndarray, feets : np.ndarray, dicrotic_v
     Parameters
     ----------
     arr : np.ndarray
-        Input data.
+        An array containing the data.
     feets : np.ndarray
-        Indices for feets or footprints of specific events.
+        An array of indices representing the feets (or footprints) of specific events.
     dicrotic_valley : np.ndarray
-        Indices representing dicrotic valleys.
+        An array of indices representing the dicrotic valleys.
     problems : np.ndarray
-       Indices representing problematic data points to be excluded from calculations.
+        An array of indices representing problematic data points to be excluded from calculations.
 
     Returns
     -------
     volumes : list
-        Integral ratios calculated as volume of systolic to diastolic peak.
+        A list of integral ratios calculated as the volume of systolic to diastolic peak.
 
     Examples
     --------
-    To find volume-ratios of systolic and diastolic peaks in given signal:
+    To find the volume-ratios of the systolic and diastolic peaks in a given signal:
 
     .. plot::
        :include-source:
@@ -134,7 +131,6 @@ def get_ppg_peak_integral_ratio(arr : np.ndarray, feets : np.ndarray, dicrotic_v
        ax.boxplot(l_ratio)
        plt.show()
     """
-
     feets = np.delete(feets, problems)
 
     volumes = []
@@ -150,37 +146,33 @@ def get_ppg_peak_integral_ratio(arr : np.ndarray, feets : np.ndarray, dicrotic_v
 
     return volumes
 
-def get_egc_interval_q_s(arr : np.ndarray, q_points : np.ndarray, s_points : np.ndarray, fs : int = 200, max_len : int = 50, threshold : float = 0.0001):
-    
+def get_egc_interval_q_s(arr: np.ndarray, q_points: np.ndarray, s_points: np.ndarray, fs: int = 200, max_len = 50, threshold = 0.0001):
     """
-    Calculates time intervals between Q and S points in ECG signal.
+    Calculate the time intervals between Q and S points in an ECG signal.
 
     Parameters
     ----------
     arr : np.ndarray
-        Input ECG signal.
+        ECG signal
     q_points : np.ndarray
-        Indices for Q points in ECG signal.
+        A list of indices representing the Q points in the ECG signal.
     s_points : np.ndarray
-        Indices for S points in ECG signal.
+        A list of indices representing the S points in the ECG signal.
     fs : int
-        Sampling rate of ECG signal in Hz.
-        Default is 200.
+        The sampling frequency of the ECG signal in Hz. Default is 200 Hz.
     max_len : int, optional
-        Scroll-distance to discover valleys.
-        Default is 50.
+        Scroll-distance to discover the valleys. Default is 50.
     threshold : float, optional
-        Threshold for identifying valleys.
-        Default is 0.0001.
+        The threshold for identifying valleys. Default is 0.0001.
 
     Returns
     -------
     ratio : list
-        Time intervals in seconds between Q and S points in ECG signal.
+        A list of time intervals in seconds between the Q and S points in the ECG signal.
 
     Examples
     --------
-    To find interval between Q and S peak ratios in given signal.
+    To find the interval between q and s-peak ratios in a given signal:
 
     .. plot::
        :include-source:
@@ -213,7 +205,6 @@ def get_egc_interval_q_s(arr : np.ndarray, q_points : np.ndarray, s_points : np.
        ax.boxplot(interval)
        plt.show()
     """
-
     ratio = []
 
     for q, s in zip (q_points, s_points):
@@ -234,37 +225,33 @@ def get_egc_interval_q_s(arr : np.ndarray, q_points : np.ndarray, s_points : np.
 
     return ratio
 
-def get_egc_interval_p_t(arr : np.ndarray, p_points : np.ndarray, t_points : np.ndarray, fs : int = 200, max_len: int = 50, threshold : float = 0.0001):
-    
+def get_egc_interval_p_t(arr, p_points: np.ndarray, t_points: np.ndarray, fs: int = 200, max_len: int = 50, threshold: float = 0.0001):
     """
-    Calculates time intervals between Q and T points in ECG signal.
+    Calculate the time intervals between Q and T points in an ECG signal.
 
     Parameters
     ----------
-    arr : np.ndarray
-        Input ECG signal.
+    arr
+        ECG signal
     p_points : np.ndarray
-        List of indices for P points in ECG signal.
+        A list of indices representing the P points in the ECG signal.
     t_points : np.ndarray
-        List of indices for T points in ECG signal.
+        A list of indices representing the T points in the ECG signal.
     fs : int
-        Sampling frequency of ECG signal in Hz.
-        Default is 200.
+        The sampling frequency of the ECG signal in Hz. Default is 200 Hz.
     max_len : int, optional
-        Scroll-distance to discover valleys.
-        Default is 50.
+        Scroll-distance to discover the valleys. Default is 50.
     threshold : float, optional
-        Threshold for identifying valleys.
-        Default is 0.0001.
+        The threshold for identifying valleys. Default is 0.0001.
 
     Returns
     -------
     ratio : list
-        Time intervals in seconds between Q and T points in ECG signal.
+        A list of time intervals in seconds between the Q and T points in the ECG signal.
 
     Examples
     --------
-    To find interval between P and T peaks ratios in given signal:
+    To find the interval between p and t-peaks ratios in a given signal:
 
     .. plot::
        :include-source:
@@ -297,7 +284,6 @@ def get_egc_interval_p_t(arr : np.ndarray, p_points : np.ndarray, t_points : np.
        ax.boxplot(interval)
        plt.show()
     """
-
     ratio = []
 
     for p, t in zip(p_points, t_points):
@@ -317,37 +303,33 @@ def get_egc_interval_p_t(arr : np.ndarray, p_points : np.ndarray, t_points : np.
 
     return ratio
 
-def get_egc_interval_q_t(arr : np.ndarray, q_points : np.ndarray, t_points : np.ndarray, fs : int = 200, max_len : int = 50, threshold : float = 0.0001):
-    
+def get_egc_interval_q_t(arr, q_points, t_points, fs = 200, max_len: int = 50, threshold: float = 0.0001):
     """
-    Calculates time intervals between Q and T points in ECG signal.
+    Calculate the time intervals between Q and T points in an ECG signal.
 
     Parameters
     ----------
-    arr : np.ndarray
-        Input ECG signal
-    q_points : np.ndarray
-       Indices representing Q points in ECG signal.
-    t_points : np.ndarray
-        Indices representing T points in ECG signal.
-    fs : int
-        Sampling frequency of ECG signal in Hz.
-        Default is 200.
+    arr
+        ECG signal
+    q_points
+        A list of indices representing the Q points in the ECG signal.
+    t_points
+        A list of indices representing the T points in the ECG signal.
+    fs
+        The sampling frequency of the ECG signal in Hz. Default is 200 Hz.
     max_len : int, optional
-        Scroll-distance to discover valleys.
-        Default is 50.
+        Scroll-distance to discover the valleys. Default is 50.
     threshold : float, optional
-        Threshold for identifying valleys.
-        Default is 0.0001.
+        The threshold for identifying valleys. Default is 0.0001.
 
     Returns
     -------
     ratio : list
-        Ttime intervals in seconds between Q and T points in ECG signal.
+        A list of time intervals in seconds between the Q and T points in the ECG signal.
 
     Examples
     --------
-    To find interval between Q and T peaks ratios in given signal:
+    To find the interval between q and t-peaks ratios in a given signal:
 
     .. plot::
        :include-source:
@@ -379,7 +361,6 @@ def get_egc_interval_q_t(arr : np.ndarray, q_points : np.ndarray, t_points : np.
        ax.boxplot(interval)
        plt.show()
     """
-
     ratio = []
 
     for q, t in zip (q_points, t_points):
@@ -399,30 +380,20 @@ def get_egc_interval_q_t(arr : np.ndarray, q_points : np.ndarray, t_points : np.
 
     return ratio
 
-def compute_meandist(diff_rri : any):
-    
+def compute_meandist(diff_rri):
     """
-    Computes mean distance between successive elements in given time series.
+    Computes the mean distance between successive elements in a given time series.
 
     Parameters
     ----------
-    diff_rri : any
-        Input time series data representing successive differences of RR intervals.
+    diff_rri
+        he input time series data representing the successive differences of R-R intervals.
 
     Returns
     -------
     mean_distance : float
-        Calculated mean distance value.
-    
-    Examples
-    --------
-    To get mean distances in input data.
-    
-    .. code-block:: python
-        from vitalwave import features
-        features.compute_meandist(diff_rri=data)
+        The calculated mean distance value.
     """
-
     dist = []
     for i in range(len(diff_rri) - 1):
         dist.append(np.linalg.norm([diff_rri[i + 1], diff_rri[i]]))
@@ -430,31 +401,26 @@ def compute_meandist(diff_rri : any):
 
     return mean_distance
 
-def get_global_egc_features(r_peaks : np.ndarray, fs : int = 100, min_rr_interval : int = 50):
-
+def get_global_egc_features(r_peaks: np.ndarray, fs: int = 100, min_rr_interval: int = 50):
     """
-    Calculates global ECG features from R peak indices.
+    Calculate global ECG (Electrocardiogram) features from R-peak indices.
 
     Parameters
     ----------
     r_peaks : np.ndarray
-        R peak indices in ECG signal.
+        List of R-peak indices in the ECG signal.
     fs : int
-        Sampling rate of ECG signal in Hz.
-        Deafult is 100.
+        Sampling frequency of the ECG signal in Hz.
     min_rr_interval : int
-        Minimum RR interval in ms used for computing pNNxx.
-        Default is 50.
+        Minimum RR interval in milliseconds, used for computing pNNxx.
 
     Returns
     -------
     global_features : object
-        Scalar variables.
+        Containing scalar variables.
     
     Examples
-    --------
-    To get ECG features.
-    
+    --------    
     .. code-block:: python
         from vitalwave import features
         features.get_global_egc_features(r_peaks=r, fs=100, min_rr_interval=50)
@@ -476,6 +442,11 @@ class _Global_EGC_Features:
         corr_heart_rate  = Standard Deviation of Heart Rate
         min_heart_rate   = Minimum Heart Rate
         max_heart_rate   = Maximum Heart Rate
+
+        Parameters
+        ----------
+        r_peaks
+        fs
         """
 
         self.ecg_r_peak_indices = r_peaks
@@ -507,40 +478,32 @@ class _Global_EGC_Features:
             f"Maximum Heart Rate: {self.max_heart_rate:.2f}"
         )
 
-def _get_local_valley(arr : np.ndarray, threshold : float = 0.0001, direction : str = 'right', max_len : int = 100):
-    
+def _get_local_valley(arr, threshold=0.0001, direction = "right", max_len = 100):
     """
-    Finds index of first local valley that defines point where gradient changes from decreasing to increasing.
+    Find the index of the first local valley - a point where the gradient changes from decreasing to increasing.
 
-    Parameters:
+    Parameters
     -----------
-    arr : np.ndarray
-        Input values.
-    threshold : float
-        Threshold for gradient magnitude.
-        Default is 0.0001.
-    direction : str
-        Search direction.
-        Left to search backwards and right to onwards.
-        Alternatives are 'left' and 'right'.
-    max_len : int
-        Maximum length of array to consider.
-        Default is 100.
+    arr
+        The input array or list of values.
+    threshold
+        The threshold for gradient magnitude. Default is 0.01.
+    direction
+        The search direction; left or right. Left to search backwards.
+    max_len
+        The maximum length of the array to consider. Default is 100.
 
-    Returns:
+    Returns
     --------
-    gradients : int
-        Index of first local valley or None if no suitable valley is found.
+    int or None:
+        Index of the first local valley, or None if no suitable valley is found.
     
     Examples
-    --------
-    To find first local valley.
-    
+    --------    
     .. code-block:: python
         from vitalwave import features
         features._get_local_valley(arr=data, threshold=0.0001, direction='right', max_len=100)
     """
-
     if direction == "left":
         arr = np.flip(arr)
 

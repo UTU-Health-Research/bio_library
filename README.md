@@ -1,3 +1,5 @@
+
+
 # Vital-wave library
 
 ## Installing the package
@@ -13,17 +15,16 @@ Main dependencies:
 
 Key python constraint: 3.10
 
-Run pip install wherein the pyproject.toml file is located.
-Either use flag -e to enable editing of the source. 
+run pip install wherein the pyproject.toml file is located. Either use flag -e to enable editing of the source. 
 The location can also be a github repository
 
-    (base)  pip install -e .
+    (base)  pip install -e . 
 
-      * dynamically keeps the module up to date
+      * dynamically keeps the module up to date 
     
-    (base)  pip install .
+    (base)  pip install . 
 
-      * requires re-installation as new features are produced
+      * requires re-installation as new features are produced 
 
 A successful installation has the following input:
 
@@ -66,6 +67,8 @@ To Generating docs config(s) - first time:
 
 Hand-maid modifications are needed with this command
 
+
+
 ## Running the module-code.
 
 The syntax to running the code is, from vitalwave import:
@@ -79,13 +82,12 @@ The syntax to running the code is, from vitalwave import:
 ## to do
 
 This is the working document for the Project.
+- check quality indices
+- check feature moduuli
+- refaktorointi + test notebooks + checking fix comments in the code
+- augmentation module
+- time series outlier removals 
+- respiration algot
+- activity algot/models?
+- segmentation?
 
-- [x] feature moduuli - working
-- [x] refaktorointi --> publish - working
-
-for future
-- [x] quality indices - working
-- [x] statistical outliers -done
-- [ ] respiration algot
-- [x] activity algot
-- [x] segmentation

@@ -1,82 +1,69 @@
 import numpy as np
-
 import scipy
 
 from vitalwave import basic_algos
 
-def clean_accelerometer_signal(arr : np.ndarray, dwt_transform : str = 'bior4.4', dlevels : int = 9, cutoff_low : int = 1, cutoff_high : int = 9):
-
+def clean_accelerometer_signal(arr: np.ndarray, dwt_transform: str = 'bior4.4', dlevels: int = 9,
+                               cutoff_low: int = 1, cutoff_high: int = 9) -> np.ndarray:
     """
-    Cleans and preprocesses accelerometer signal using wavelet transformation and min-max normalization.
+    Clean and preprocess an accelerometer signal using wavelet transformation and min-max normalization.
 
     Parameters
     ----------
     arr : np.ndarray
         Input accelerometer signal.
     dwt_transform : str
-        Wavelet transform type.
-        Default is 'bior4.4'.
+        Wavelet transform type (default: 'bior4.4').
     dlevels : int
-        Number of decomposition levels in wavelet transform.
-        Default is 9.
+        Number of decomposition levels in the wavelet transform (default: 9).
     cutoff_low : int
-        Low-frequency cutoff for wavelet transform.
-        Default is 1.
+        Low-frequency cutoff for wavelet transform (default: 1).
     cutoff_high : int
-        High-frequency cutoff for wavelet transform.
-        Default is 9.
+        High-frequency cutoff for wavelet transform (default: 9).
 
     Returns
     -------
     acc : np.ndarray
         Cleaned and normalized accelerometer signal.
-
+    
     Examples
     --------
-    To clean and preprocess accelerometer signal.
-
     .. code-block:: python
         from vitalwave import activity
         activity.clean_accelerometer_signal(arr=signal, dwt_transform='bior4.4', dlevels=9, cutoff_low=1, cutoff_high=9)
     """
-
     acc_cleaned = basic_algos.wavelet_transform_signal(arr = arr, dwt_transform = dwt_transform, dlevels=dlevels,
                                                        cutoff_low=cutoff_low, cutoff_high=cutoff_high)
 
     acc = basic_algos.min_max_normalize(arr=acc_cleaned)
-
     return acc
 
-def calculate_gravity_and_movement_xyz(arr_ac_x : np.ndarray, arr_ac_y : np.ndarray, arr_ac_z : np.ndarray, fs : float):
-    
+def calculate_gravity_and_movement_xyz(arr_ac_x: np.ndarray, arr_ac_y: np.ndarray, arr_ac_z: np.ndarray, fs: float):
     """
-    Calculates gravity and movement components of accelerometer data.
+    Calculate gravity and movement components of accelerometer data.
 
     Parameters
     ----------
     arr_ac_x : np.ndarray
-        X-component of raw accelerometer data.
+        Raw accelerometer data along the X-axis.
     arr_ac_y : np.ndarray
-        Y-component of raw accelerometer data.
+        Raw accelerometer data along the Y-axis.
     arr_ac_z : np.ndarray
-        Z-component of raw accelerometer data.
+        Raw accelerometer data along the Z-axis.
     fs : float
-        Sampling rate of data.
+        Sampling frequency.
 
     Returns
     -------
     gravity : np.ndarray
-        Each gravity component of data.
-
+        Gravity component of the data for each axis (X, Y, Z).
+    
     Examples
     --------
-    To define gravity and movement components.
-
     .. code-block:: python
         from vitalwave import activity
         activity.calculate_gravity_and_movement_xyz(arr_ac_x=x, arr_ac_y=y, arr_ac_z=z, fs=200)
     """
-
     gravity_x_filtered = basic_algos.butter_filter(arr_ac_x, n=4,  fs=fs, wn=1, filter_type='low')
     gravity_y_filtered = basic_algos.butter_filter(arr_ac_y, n=4,  fs=fs, wn=1, filter_type='low')
     gravity_z_filtered = basic_algos.butter_filter(arr_ac_z, n=4,  fs=fs, wn=1, filter_type='low')
@@ -85,10 +72,9 @@ def calculate_gravity_and_movement_xyz(arr_ac_x : np.ndarray, arr_ac_y : np.ndar
 
     return gravity
 
-def calculate_gravity_statistics(gravity_data : np.ndarray):
-
+def calculate_gravity_statistics(gravity_data: np.ndarray):
     """
-    Calculates statistics and additional features for gravity data.
+    Calculate statistics and additional features for gravity data.
 
     Parameters
     ----------
@@ -97,18 +83,15 @@ def calculate_gravity_statistics(gravity_data : np.ndarray):
 
     Returns
     -------
-    calculator : class object
-        Calculated statistics and additional features for gravity data.
-
+    calculator : An instance of the _GravityStatisticsCalculator class
+        Calculated statistics and additional features for the input gravity data.
+    
     Examples
     --------
-    To handle gravity data.
-
     .. code-block:: python
         from vitalwave import activity
         activity.calculate_gravity_statistics(gravity_data=arr)
     """
-
     calculator = _GravityStatisticsCalculator(gravity_data)
     return calculator
 
@@ -125,7 +108,7 @@ class _GravityStatisticsCalculator:
         self.min_val = np.min(self.gravity, axis=1)
         self.max_val = np.max(self.gravity, axis=1)
 
-        # Calculate additional features.
+        # Calculate additional features
         filt_g = scipy.signal.savgol_filter(np.copy(self.gravity), 5, 2, deriv=1)
         self.num_sign_changes_filt = (np.diff(np.sign(filt_g), axis=1) != 0).sum(axis=1)
         self.num_sign_changes_orig = (np.diff(np.sign(self.gravity), axis=1) != 0).sum(axis=1)
@@ -142,30 +125,26 @@ class _GravityStatisticsCalculator:
                f"Num Sign Changes (Filtered): {self.num_sign_changes_filt}\n" \
                f"Num Sign Changes (Original): {self.num_sign_changes_orig}"
 
-def extract_frequency_domain_features(movement : np.ndarray):
-
+def extract_frequency_domain_features(movement: np.ndarray):
     """
-    Extracts frequency domain features from input movement data.
+    Extract frequency domain features from input movement data.
 
     Parameters
     ----------
     movement : np.ndarray
-        Input movement data.
+        Input data.
 
     Returns
     -------
-    features : class object
-        Frequency domain features encapsulated within class.
-
+    features : An instance of the _FrequencyDomainFeatureExtractor class
+        List of frequency domain features encapsulated within a class.
+    
     Examples
     --------
-    To get frequency domain features.
-
     .. code-block:: python
         from vitalwave import activity
         activity.extract_frequency_domain_features(movement=arr)
     """
-
     features = _FrequencyDomainFeatureExtractor(movement=movement)
     return features
 
@@ -173,12 +152,12 @@ class _FrequencyDomainFeatureExtractor:
     def __init__(self, movement):
         self.movement = movement
 
-        # Calculate statistical features.
+        # Calculate statistical features
         self.skewness = scipy.stats.skew(self.movement, axis=1)
         self.kurtosis = scipy.stats.kurtosis(self.movement, axis=1)
         self.sum_of_squares = np.sum(np.square(self.movement), axis=1)
 
-        # Calculate frequency-domain features.
+        # Calculate frequency-domain features
         abs_fft_data = np.abs(np.fft.rfft(self.movement, axis=1))
         self.mean_magnitudes = np.mean(abs_fft_data, axis=1)
         self.std_magnitudes = np.std(abs_fft_data, axis=1)
@@ -190,7 +169,7 @@ class _FrequencyDomainFeatureExtractor:
         self.spectral_centroid = np.sum(freq_values * abs_fft_data, axis=1) / sums
         self.total_power = np.sum(abs_fft_data ** 2, axis=1)
 
-        # Zero-crossings.
+        # zero-crossings
         filt_m = scipy.signal.savgol_filter(np.copy(self.movement), 5, 2, deriv=1)
         self.num_sign_changes_filt = (np.diff(np.sign(filt_m), axis=1) != 0).sum(axis=1)
         self.num_sign_changes_orig = (np.diff(np.sign(self.movement), axis=1) != 0).sum(axis=1)
@@ -208,30 +187,26 @@ class _FrequencyDomainFeatureExtractor:
                f"Num Sign Changes (Filtered): {self.num_sign_changes_filt}\n" \
                f"Num Sign Changes (Original): {self.num_sign_changes_orig}"
 
-def calculate_polynomial_fit(data : np.ndarray):
-
+def calculate_polynomial_fit(data: np.ndarray):
     """
-    Calculates polynomial fit features based on input data.
+    Calculate polynomial fit features based on input data.
 
     Parameters
     ----------
     data : np.ndarray
-        Input data.
+        Input data matrix.
 
     Returns
     -------
     tuple
         Polynomial fit features including pitch, roll, and theta.
-
+    
     Examples
     --------
-    To get polynomial fit features.
-
     .. code-block:: python
         from vitalwave import activity
         activity.calculate_polynomial_fit(data=arr)
     """
-    
     pitch = np.arctan((data[0, :] / (np.square(data[1, :]) + np.square(data[2, :]))))
     roll = np.arctan((data[1, :] / (np.square(data[0, :]) + np.square(data[2, :]))))
     theta = np.arctan(((np.square(data[1, :]) + np.square(data[0, :])) / data[2, :]))
@@ -245,33 +220,28 @@ def calculate_polynomial_fit(data : np.ndarray):
 
     return p1, p2, r1, r2, t1, t2
 
-def axes_corr(data : np.ndarray, size : int = 2):
-
+def axes_corr(data: np.ndarray, size: int = 2):
     """
-    Computes correlation between all axes and magnitudes for given data.
+    Compute correlation between all axes (and the magnitudes) for a given data matrix.
 
     Parameters
     ----------
     data : np.ndarray
-        Input data.
+        Input data matrix.
     size: int
-        Number of dimensions.
-        Default is 2.
+        The number of axes to consider (default: 2.)
 
     Returns
     -------
     corr : np.ndarray
         Correlation coefficients.
-
+    
     Examples
     --------
-    To define correlation between axes and magnitudes.
-
     .. code-block:: python
         from vitalwave import activity
         activity.axes_corr(data=arr, size=2)
     """
-
     corr = []
     for i in range(size):
         for j in range(size):
@@ -285,44 +255,42 @@ def axes_corr(data : np.ndarray, size : int = 2):
     y = data[:, -1]
     corr.append((np.mean((x * y)) - np.mean(x) * np.mean(y)) / (np.std(x) * np.std(y)))
 
-    corr = np.ndarray(corr)
+    return np.array(corr)
 
-    return corr
-
-def get_activity_features(arr_ac_x : np.ndarray, arr_ac_y : np.ndarray, arr_ac_z : np.ndarray, fs : float, size : int = 6):
-    
+def get_activity_features(arr_ac_x: np.ndarray, arr_ac_y: np.ndarray, arr_ac_z: np.ndarray, fs: float, size: int = 6):
     """
-    Calculates activity features for single sensor with three dimensions.
+    Calculate activity features for a single sensor with three degrees of movement.
 
     Parameters
     ----------
     arr_ac_x : np.ndarray
-        X-component of accelerometer data.
+        Accelerometer data for the X-axis.
     arr_ac_y : np.ndarray
-        Y-component of accelerometer data.
+        Accelerometer data for the Y-axis.
     arr_ac_z : np.ndarray
-        Z-component of accelerometer data.
+        Accelerometer data for the Z-axis.
     fs : float
         Sampling rate.
     size : int, optional
-        Size parameter for correlations calculation.
-        Default is 6.
+        Size parameter for correlations calculation (default: 6).
 
     Returns
     -------
-    tuple
-        Activity features of sensor.
+    gravity_statistics
+
+    freq_domain_features
+
+    poly_fit_features
+    
+    correlations
 
     Examples
     --------
-    To get single sensors activity features.
-
     .. code-block:: python
         from vitalwave import activity
         activity.get_activity_features(arr_ac_x=x, arr_ac_y=y, arr_ac_z=z, fs=200, size=6)
     """
-
-    # Start of the original code.
+    # start of the original code
     gravity = calculate_gravity_and_movement_xyz(arr_ac_x=arr_ac_x,
                                                  arr_ac_y=arr_ac_y,
                                                  arr_ac_z=arr_ac_z,
@@ -330,16 +298,16 @@ def get_activity_features(arr_ac_x : np.ndarray, arr_ac_y : np.ndarray, arr_ac_z
 
     movement = np.column_stack((arr_ac_x, arr_ac_y, arr_ac_z))
 
-    # Gravity features.
+    # gravity features;
     gravity_statistics = calculate_gravity_statistics(gravity.T)
 
-    # Movement features.
+    # movement features;
     freq_domain_features = extract_frequency_domain_features(movement.T)
 
-    # Polynomial fit features.
+    # polynomial fit features
     poly_fit_features = calculate_polynomial_fit(movement)
 
-    # Correlations between the axes.
+    # correlations between the axes
     correlations = axes_corr(movement.T, size=size)
 
     return gravity_statistics, freq_domain_features, poly_fit_features, correlations
