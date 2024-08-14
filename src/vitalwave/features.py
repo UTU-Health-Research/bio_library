@@ -393,6 +393,12 @@ def compute_meandist(diff_rri):
     -------
     mean_distance : float
         The calculated mean distance value.
+
+    Examples
+    --------    
+    .. code-block:: python
+        from vitalwave import features
+        features.compute_meandist(diff_rri=diff_rri)
     """
     dist = []
     for i in range(len(diff_rri) - 1):

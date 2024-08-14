@@ -530,17 +530,33 @@ def filter_hr_peaks(peaks, fs:int, hr_min=40, hr_max=200, kernel_size=7, sdsd_ma
     the variability of R-R intervals. It applies a median filter to smooth the HR signal and uses the Standard Deviation
     of Successive Differences (SDSD) to exclude intervals with high variability.
 
-    Parameters:
-        peaks (array): Array of detected peaks' indices in the signal.
-        fs (int): Sampling frequency of the signal.
-        hr_min (int): Minimum allowable heart rate value in BPM.
-        hr_max (int): Maximum allowable heart rate value in BPM.
-        kernel_size (int): Size of the kernel used for median filtering.
-        sdsd_max (float): Maximum allowable SDSD. Peaks resulting in a higher SDSD will be excluded.
+    Parameters
+    ----------
+    peaks : np.ndarray
+        Array of detected peaks' indices in the signal.
+    fs : int
+        Sampling frequency of the signal.
+    hr_min : int
+        Minimum allowable heart rate value in BPM.
+    hr_max : int
+        Maximum allowable heart rate value in BPM.
+    kernel_size : int
+        Size of the kernel used for median filtering.
+    sdsd_max : float
+        Maximum allowable SDSD. Peaks resulting in a higher SDSD will be excluded.
 
-    Returns:
-        np.array: An array of valid peak indices after filtering.
-        float: The mean heart rate computed from the valid R-R intervals.
+    Returns
+    -------
+        valid_peaks : np.ndarray
+            An array of valid peak indices after filtering.
+        valid_hr_mean : float
+            The mean heart rate computed from the valid R-R intervals.
+    
+    Examples
+    --------
+    .. code-block:: python
+        from vitalwave import basic_algos
+        basic_algos.filter_hr_peaks(peaks=ecg, fs=200, hr_min=40, her_max=200, kernel_size=7, sdsd_max=0.35)
     """
     # Calculate R-R intervals in samples
     rri_s = np.diff(peaks)
