@@ -52,7 +52,7 @@ def Cardiac_Pulse_Power(arr, peaks, fs, each_slice_length=100):
     cardiac_cycles = [arr[max(0, peak - interval_length // 2):min(len(arr), peak + interval_length // 2)] for peak in peaks]
     
     # Calculate the energy for each cardiac cycle using numpy operations
-    energies = [np.sum(np.square(cycle)) for cycle in cardiac cycles]
+    energies = [np.sum(np.square(cycle)) for cycle in cardiac_cycles]
     
     # Calculate the mean energy of the cardiac cycles
     average_energy = np.mean(energies) if energies else 0  # Return 0 if no cycles are extracted
@@ -335,32 +335,6 @@ def Dynamic_Correlation_Index(arr, locs, fs):
     # Step 7: Calculate and return the average quality index
     average_quality = np.mean(quality_indices) if quality_indices else 0  
     return average_quality
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # TEMPLATE MATCHING BASED ALGOS, ADD EUCLIDEAN DISTANCE, ADD POSSIBLITY FOR LINEAR SAMPLING
 def Euclidean_Distance(arr, locs, fs):
