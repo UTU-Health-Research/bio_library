@@ -18,7 +18,7 @@ def Absolute_Signal_to_noise_Ratio(arr):
     
     Returns
     -------
-    SNR
+    snr
         The calculated Signal-to-Noise Ratio.
     """
     # Calculate the standard deviation of the signal and its absolute value
