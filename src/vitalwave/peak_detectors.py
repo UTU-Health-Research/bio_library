@@ -5,8 +5,7 @@ from scipy.signal import find_peaks, detrend, windows
 
 import copy
 
-#MAKE L = 2*fs ALWAYS IN ALL METHODS
-def ampd(arr: np.ndarray, fs: int = None) -> np.ndarray:
+def ampd(arr: np.ndarray, fs: int) -> np.ndarray:
     """
     Automatic multiscale-based peak detection (AMPD).
 
@@ -67,10 +66,7 @@ def ampd(arr: np.ndarray, fs: int = None) -> np.ndarray:
     N = arr_detrended.size
 
     # Number of moving windows.
-    if fs is not None:
-        L = 2 * fs
-    else:
-        L = N // 2
+    L = 2 * fs
 
     # Local maxima scalogram (LMS) of the signal.
     M = np.zeros((L, N))
@@ -96,7 +92,7 @@ def ampd(arr: np.ndarray, fs: int = None) -> np.ndarray:
 
     return peaks
 
-def msptd(arr: np.ndarray, fs: int = None) -> tuple[np.ndarray, np.ndarray]:
+def msptd(arr: np.ndarray, fs: int) -> tuple[np.ndarray, np.ndarray]:
     """
     Modified automatic multiscale-based peak detection (AMPD).
 
@@ -155,10 +151,8 @@ def msptd(arr: np.ndarray, fs: int = None) -> tuple[np.ndarray, np.ndarray]:
        plt.show()
     """
     N = len(arr)
-    if fs is not None:
-        L = int(np.ceil(fs / 2)) - 1
-    else:
-        L = int(np.ceil(N / 2)) - 1
+    L = int(np.ceil(fs / 2)) - 1
+
 
     # Detrend the data.
     arr_detrended = copy.deepcopy(arr)
@@ -268,10 +262,10 @@ def ecg_modified_pan_tompkins(arr: np.ndarray, fs: int) -> np.ndarray:
     s_norm = basic_algos.min_max_normalize(s_int)
 
     # Find peaks.
-    r_peaks = find_peaks(s_norm, distance=int(0.4 * fs), height=0.1)[0]
+    r_peaks = ampd(s_norm, fs)
 
     # Fix R peak positions.
-    r_peaks = basic_algos._find_corresponding(arr = arr, peaks = r_peaks, w = (0.5 * fs))
+    r_peaks = basic_algos._find_corresponding(arr = arr, peaks = r_peaks, w = (0.1 * fs))
 
     return r_peaks
 
