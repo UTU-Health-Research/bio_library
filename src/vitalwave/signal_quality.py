@@ -22,7 +22,7 @@ def Absolute_Signal_to_noise_Ratio(arr):
         The calculated Signal-to-Noise Ratio.
     """
     # Calculate the standard deviation of the signal and its absolute value
-    return np.std(arr)/np.std(np.abs(arr))
+    return np.std(np.abs(arr))/np.std(arr)
 
 def Cardiac_Pulse_Power(arr, peaks, fs, each_slice_length=100):
     """
