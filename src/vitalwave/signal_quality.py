@@ -1,6 +1,6 @@
 import numpy as np
-from scipy.stats import pearsonr
-from scipy.signal import welch, resample, kurtosis, skew, linregress 
+from scipy.stats import pearsonr, kurtosis
+from scipy.signal import welch, resample, skew, linregress 
 from vitalwave.basic_algos import extract_waveforms
 import math 
 
